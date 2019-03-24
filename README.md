@@ -1,1 +1,1 @@
-# NuWAVE
+# GnuWAVE
