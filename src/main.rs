@@ -4,7 +4,7 @@ use crate::Service::SDSServices;
 //use crate::Service::PrivateSDS;
 use std::io;
 fn main() {
-  let test = Service::Initialize();
-  println!("Compiled ok {}", test.getString());
-  println!("The secret is {}", test.Secret());
+  let (SDS,SSME) = Service::Initialize();
+  println!("Compiled ok {}", SDS.getString());
+  println!("The secret is {}", SSME.Secret());
 }
