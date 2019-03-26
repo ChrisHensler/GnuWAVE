@@ -17,3 +17,29 @@ pub fn initialize() -> (data_service::SecureDataService,management_entity::Stati
   let m=management_entity::new();
   (r,m)
 }
+
+#[cfg(test)]
+mod tests {
+  use super::data_service;
+  use super::management_entity;
+  use crate::security_services::access_points::TraitSecureDataService;
+
+  #[test]
+  fn test_ctors() {
+    assert!(data_service::new().get_string() == "Greetings!");
+    assert!(management_entity::new().get_string() == "Wrong Services package!");
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_panic() {
+    let a = 0;
+    let b = 1/a;
+  }
+
+  #[test]
+  #[should_panic(expected = "RUUUUUN!")]
+  fn test_panic2() {
+    panic!("RUUUUUN!");
+  }
+}
