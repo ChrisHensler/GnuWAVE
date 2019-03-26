@@ -1,13 +1,6 @@
-pub trait SDSServices {
-  fn getString(&self) -> String;
-  fn Secret(&self) -> String;
-}
-trait PrivateSDS {
-  fn getSecret(&self) -> String;
-}
-pub struct SDS{
-  s:String,
-}
+pub mod SDS;
+
+
 pub struct SSME{
   t:String,
 }
@@ -19,21 +12,10 @@ pub struct SSME{
     String::from("Greetings!")
   }
 }*/
-impl SDSServices for SDS {
-  fn getString(&self) -> String {
-    String::from("Greetings!")
-  }
-  fn Secret(&self) -> String {
-    self.getSecret()
-  }
-}
-impl PrivateSDS for SDS {
-  fn getSecret(&self) -> String {
-    String::from("It's a Secret")
-  }
-}
+
+
 //Now implement SDServices for SSME
-impl SDSServices for SSME {
+impl SDS::TraitSecureDataService for SSME {
   fn getString(&self) -> String {
     String::from("Wrong Services package!")
   }
@@ -42,11 +24,10 @@ impl SDSServices for SSME {
     String::from("nothing")
   }
 }
-//Creat the structs
-pub fn Initialize() -> (SDS,SSME) {
-  let  r=SDS {
-    s: String::from("Hello there!"),
-    };
+
+//Create the structs
+pub fn Initialize() -> (SDS::SDS,SSME) {
+  let  r=SDS::Initialize();
   let m= SSME {t:String::from("no"),};
   (r,m)
 }
