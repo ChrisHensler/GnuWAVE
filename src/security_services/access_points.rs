@@ -43,6 +43,6 @@ pub trait TraitSecureDataService {
     use_p2pcd: bool,
     sdee_id: u64
   ) -> (
-    ResultCode_SecSignedData, String //todo: ResultCode and IEEEData
+    ResultCode_SecSignedData, Ieee1609Dot2Data
   );
 }
