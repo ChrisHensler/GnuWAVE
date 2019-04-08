@@ -5,6 +5,18 @@ pub trait TraitSecureDataService {
   fn get_string(&self) -> String;
   fn secret(&self) -> String;
 
+
+  fn ConvertToSPDU(&self, data: String) -> (Ieee1609Dot2Data);
+
+  /*
+  Sec-CryptomaterialHandle.request ()
+  Sec-CryptomaterialHandle.confirm (
+    Result Code
+    Cryptomaterial Handle,
+  )
+  */
+  fn SecCryptomaterialHandle(&self) -> (bool, u64);
+
   /*
   Sec-SignedData.request (
     Cryptomaterial Handle,
