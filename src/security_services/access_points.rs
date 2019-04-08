@@ -6,6 +6,15 @@ pub trait TraitSecureDataService {
   fn secret(&self) -> String;
 
   /*
+  Sec-CryptomaterialHandle.request ()
+  Sec-CryptomaterialHandle.confirm (
+    Result Code
+    Cryptomaterial Handle,
+  )
+  */
+  fn SecCryptomaterialHandle(&self) -> (bool, u64);
+
+  /*
   Sec-SignedData.request (
     Cryptomaterial Handle,
     Data (optional),
