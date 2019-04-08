@@ -41,10 +41,10 @@ enum FastVerificationOptions {
   No
 }
 
-pub struct SignerIdentifier {
-  //todo: certificate
-  digest[char; 8],
-  self_signed=bool,
+pub enum SignerIdentifier {
+  Certificate(String),
+  digest([char;8]),
+  self_signed(bool),
 }
 
 pub struct HeaderInfo {
@@ -91,10 +91,10 @@ pub struct Ieee1609Dot2DataRaw  {
   protocol_version: u8,
   content: String
 }
-pub enum ResultCode_EncryptedData {
+pub enum ResultCode_SecEncryptedData {
   Success, IncorrectInputs, FailOnSomeCertificates, FailOnAllCertificates,
 }
-pub enum ResultCode_SecureDataPreProcess {
+pub enum ResultCode_SecSecureDataPreProcess {
   Success, InvalidInput, UnknownCertificate, InconsistentPSID,
 }
 pub enum SPDUParsing {

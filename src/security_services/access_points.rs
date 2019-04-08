@@ -1,33 +1,6 @@
 use std::time::SystemTime;
 use super::super::DataTypes;
 
-
-enum ResultCode_SecSignedData {
-  Success,
-  IncorrectInput,
-  NoCertificateProvided,
-  NoPublicKeyProvided,
-  NotEnoughInfo,
-  NoTrustAnchor,
-  ChainTooLong,
-  NotCryptoValid,
-  UnkownCryptoValid,
-  InconsistentChainPermissions,
-  Revoked,
-  Dubious,
-  UnsupportedCriticalInfoFields,
-  InvalidEncoding,
-  CurrTimeBeforeCertValid,
-  CurrTimeAfterCertValid,
-  ExpireBeforeCertValid,
-  ExpireAfterCertValid,
-  InvalidGenLocation,
-  InconsistentCertPermissions,
-  IncorrectReqCertChainLengthForSecProfile,
-  IncorrectReqCertChainLengthForImpl,
-}
-
-
 pub trait TraitSecureDataService {
   fn get_string(&self) -> String;
   fn secret(&self) -> String;
