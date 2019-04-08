@@ -17,6 +17,15 @@ impl TraitSecureDataService for SecureDataService {
     self.get_secret()
   }
 
+
+  fn ConvertToSPDU(&self, data:String) -> (Ieee1609Dot2Data)  {
+    Ieee1609Dot2Data {
+      protocol_version: 0,
+      content: Ieee1609Dot2Content::Unsecured(data)
+    }
+  }
+
+
   fn SecCryptomaterialHandle(&self) -> (bool,u64) {
     //generate random number
     let handle = rand::thread_rng().gen::<u64>();
@@ -73,7 +82,7 @@ impl TraitSecureDataService for SecureDataService {
 
     let spdu = Ieee1609Dot2Data {
       protocol_version: 0,
-      content: content  //Ieee1609Dot2Content::Unsecured(String::from("Hi"))
+      content: content
     };
     (ResultCode_SecSignedData::Success, spdu)
   }
