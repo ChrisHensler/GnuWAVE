@@ -50,8 +50,8 @@ pub enum EccP256CurvePoint {
 }
 
 pub struct EcdsaP256Signature {
-  r: EccP256CurvePoint,
-  s: [char; 32]
+  pub r: EccP256CurvePoint,
+  pub s: [char; 32]
 }
 
 pub enum Signature {
@@ -66,31 +66,30 @@ pub enum SignerIdentifier {
 }
 
 pub struct HeaderInfo {
-  psid: u64,
-  generation_time: u64,
-  expiry_time: u64,
-  //generationLocation
+  pub psid: u64,
+  pub generation_time: u64,
+  pub expiry_time: u64,
 }
 
 pub struct HashedData {
-  sha256HashedData: [char; 32]
+  pub sha256HashedData: [char; 32]
 }
 
 pub struct SignedDataPayload {
-  data: Ieee1609Dot2DataRaw,  //needed to avoid circular definition
-  extDataHash: HashedData
+  pub data: Ieee1609Dot2DataRaw,  //needed to avoid circular definition
+  pub extDataHash: HashedData
 }
 
 pub struct ToBeSignedData {
-  payload: SignedDataPayload,
-  header_info: HeaderInfo
+  pub payload: SignedDataPayload,
+  pub header_info: HeaderInfo
 }
 
 pub struct SignedData  {
-  hash_id: HashAlgo,
-  tbs_data: ToBeSignedData,
-  signer: SignerIdentifier,
-  signature: Signature
+  pub hash_id: HashAlgo,
+  pub tbs_data: ToBeSignedData,
+  pub signer: SignerIdentifier,
+  pub signature: Signature
 }
 
 pub struct EncryptedData  {
@@ -117,8 +116,8 @@ pub struct Ieee1609Dot2Data  {
 }
 
 pub struct Ieee1609Dot2DataRaw  {
-  protocol_version: u8,
-  content: String
+  pub  protocol_version: u8,
+  pub content: String
 }
 pub enum ResultCode_SecEncryptedData {
   Success, IncorrectInputs, FailOnSomeCertificates, FailOnAllCertificates,
