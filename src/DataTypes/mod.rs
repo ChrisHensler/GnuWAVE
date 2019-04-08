@@ -93,6 +93,10 @@ pub enum Ieee1609Dot2Content  {
   SignedCert(String)
 }
 
+pub struct Ieee1609Dot2Data  {
+  protocol_version: u8,
+  content: Ieee1609Dot2Content
+}
 
 pub struct Ieee1609Dot2DataRaw  {
   protocol_version: u8,
