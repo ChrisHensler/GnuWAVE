@@ -1,5 +1,7 @@
 mod security_services;
 mod Traits;
+mod DataTypes;
+
 use crate::security_services::access_points::TraitSecureDataService;
 use crate::Traits::Tester;
 //If you try to include the line below, you get a compilation error proving that the trait is private therefore all the methods are private within it asewell.
