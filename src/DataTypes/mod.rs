@@ -41,10 +41,10 @@ enum FastVerificationOptions {
   No
 }
 
-pub struct SignerIdentifier {
-  //todo: certificate
-  digest[char; 8],
-  self_signed=bool,
+pub enum SignerIdentifier {
+  Certificate(String),
+  digest([char;8]),
+  self_signed(bool),
 }
 
 pub struct HeaderInfo {
