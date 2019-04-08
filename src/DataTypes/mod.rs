@@ -79,11 +79,18 @@ pub struct EncryptedData  {
   //TODO
 }
 
-pub struct Ieee1609Dot2Content  {
-  unsecured_data: String,
-  signed_data: SignedData,
-  encrypted_data: EncryptedData,
-  signed_cert_data: String
+enum Ieee1609Dot2ContentType {
+  Unsecured,
+  Signed,
+  Encrypted,
+  SignedCert,
+}
+
+pub enum Ieee1609Dot2Content  {
+  Unsecured(String),
+  Signed(SignedData),
+  Encrypted(EncryptedData),
+  SignedCert(String)
 }
 
 
