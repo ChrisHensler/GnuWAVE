@@ -1,5 +1,5 @@
 use std::time::SystemTime;
-use super::super::DataTypes;
+use super::super::DataTypes::*;
 
 pub trait TraitSecureDataService {
   fn get_string(&self) -> String;
@@ -34,12 +34,12 @@ pub trait TraitSecureDataService {
     psid: u64,
     set_generation_time: bool,
     set_generation_location: bool,
-    expiry_time: SystemTime,
-    signer_id_type: DataTypes::SignerIdType,
+    expiry_time: u64,
+    signer_id_type: SignerIdType,
     signer_id_cert_chain_len: u64,
     max_cert_chain_len: u8,
-    fast_verification: DataTypes::FastVerificationOptions,
-    ec_point_format: DataTypes::ECPointFormat,
+    fast_verification: FastVerificationOptions,
+    ec_point_format: ECPointFormat,
     use_p2pcd: bool,
     sdee_id: u64
   ) -> (

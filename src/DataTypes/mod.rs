@@ -23,19 +23,19 @@ pub enum ResultCode_SecSignedData {
   IncorrectReqCertChainLengthForImpl,
 }
 
-enum HashAlgo {
+pub enum HashAlgo {
   sha256
 }
-enum SignerIdType {
+pub enum SignerIdType {
   Certificate,
   Digest,
   SelfSigned
 }
-enum ECPointFormat {
+pub enum ECPointFormat {
   Compressed,
   Uncompressed
 }
-enum FastVerificationOptions {
+pub enum FastVerificationOptions {
   Compressed,
   Uncompressed,
   No

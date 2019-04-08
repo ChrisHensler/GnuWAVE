@@ -1,15 +1,11 @@
 use super::access_points::TraitSecureDataService;
-use super::super::Traits;
+use super::super::DataTypes::*;
+
 pub struct SecureDataService {
   s:String,
 }
 trait PrivateSDS {
   fn get_secret(&self) -> String;
-}
-impl Traits::Tester for SecureDataService {
-  fn getme(&self) -> String{
-    String::from("HE")
-  }
 }
 impl TraitSecureDataService for SecureDataService {
   fn get_string(&self) -> String {
@@ -18,6 +14,24 @@ impl TraitSecureDataService for SecureDataService {
   fn secret(&self) -> String {
     self.get_secret()
   }
+  fn SecSignedDataRaw(&self,
+    cryptomaterial_handle: u64,
+    data: String,
+    ext_data_hash: String,
+    ext_data_hash_algo: String,
+    psid: u64,
+    set_generation_time: bool,
+    set_generation_location: bool,
+    expiry_time: u64,
+    signer_id_type: SignerIdType,
+    signer_id_cert_chain_len: u64,
+    max_cert_chain_len: u8,
+    fast_verification: FastVerificationOptions,
+    ec_point_format: ECPointFormat,
+    use_p2pcd: bool,
+    sdee_id: u64
+  ) -> (
+    ResultCode_SecSignedData, String) {(ResultCode_SecSignedData::Success, String::from("H")) }
 }
 
 impl PrivateSDS for SecureDataService {
