@@ -112,8 +112,8 @@ pub enum Ieee1609Dot2Content  {
 }
 
 pub struct Ieee1609Dot2Data  {
-  protocol_version: u8,
-  content: Ieee1609Dot2Content
+  pub protocol_version: u8,
+  pub content: Ieee1609Dot2Content
 }
 
 pub struct Ieee1609Dot2DataRaw  {

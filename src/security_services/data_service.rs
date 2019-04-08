@@ -30,8 +30,14 @@ impl TraitSecureDataService for SecureDataService {
     ec_point_format: ECPointFormat,
     use_p2pcd: bool,
     sdee_id: u64
-  ) -> (
-    ResultCode_SecSignedData, String) {(ResultCode_SecSignedData::Success, String::from("H")) }
+  ) -> (ResultCode_SecSignedData, Ieee1609Dot2Data)
+  {  
+    let spdu = Ieee1609Dot2Data {
+      protocol_version: 0,
+      content: Ieee1609Dot2Content::Unsecured(String::from("Hi"))
+    };
+    (ResultCode_SecSignedData::Success, spdu)
+  }
 }
 
 impl PrivateSDS for SecureDataService {
