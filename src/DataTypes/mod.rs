@@ -41,6 +41,24 @@ enum FastVerificationOptions {
   No
 }
 
+pub enum EccP256CurvePoint {
+  xOnly([char; 32]),
+  fill(),
+  compressed_Y_0([char; 32]),
+  compressed_Y_1([char; 32]),
+  uncompressed ([char; 32],[char; 32])
+}
+
+pub struct EcdsaP256Signature {
+  r: EccP256CurvePoint,
+  s: [char; 32]
+}
+
+pub enum Signature {
+  ecdsaNistP256Signature(EcdsaP256Signature),
+  ecdsaBrainpoolP256r1Signature(EcdsaP256Signature),
+} 
+
 pub enum SignerIdentifier {
   Certificate(String),
   digest([char;8]),
