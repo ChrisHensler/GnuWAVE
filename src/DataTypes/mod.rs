@@ -158,4 +158,36 @@ pub enum ResultCode_SecSignedDataVerification {
 pub enum ResultCode_SecEncryptedDataDecryption {
   Success,NoDecryptionKeyAvailable,UnsupportedCriticalInformationField,CouldntDecryptKey,CouldntDecryptData,InvalidFormForPlainText,
 }
-
+pub enum ResultCode_SSMECertificateInfo {
+  CertificateNotFound, MultipleCertificatesIdentified, NotYetVerified, VerifiedAndTrusted, NoTrustAnchor, ChainTooLongForImplementation, NotCryptographicallyValid, InconsistentPermissionsInChain, Revoked, Dubious, UnsupportedCriticalInformationFields, InvalidEncoding,
+}
+pub enum ResultCode_SSMEAddTrustAnchor {
+  Success, InvalidInput, CertificateRevoked, CertificateDidNotVerify,
+}
+pub enum ResultCode_SSMEAddCertificate {
+  Success, InvalidInput,
+}
+pub enum ResultCode_SSMEVerifyCertificate {
+  Verified, NoTrustAnchor, ChainTooLongForImplementation, NotCryptographicallyValid, InconsistentPermissionsInChain, Revoked, Dubious, UnsupportedCriticalInformationFields, InvalidEncoding,
+}
+pub enum ResultCode_SSMEDeleteCertificate {
+  Success, InvalidInput,
+}
+pub enum ResultCode_AddHashIdBasedRevocation {
+  Success, InvalidInput,
+}
+pub enum ResultCode_SSMEAddIndividualLinkageBasedRevocation {
+  Success,InvalidInput,
+}
+pub enum ResultCode_SSMEAddGroupLinkageBasedRevocation {
+  Success,InvalidInput,
+}
+pub enum ResultCode_SSMERevocationInformationStatus {
+  Success, UnrecognizedIdentifier, Expired, NotIssuedYet, Missing,
+}
+pub enum ResultCode_SSMEP2pcdConfiguration {
+  Success,Failure,
+}
+pub enum ResultCode_SSMESecReplayDetection {
+  Replay,NotReplay,
+}
