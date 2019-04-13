@@ -14,12 +14,13 @@ type HashedId10     = [char;10];
 type HashedId32     = [char;32];
 
 //***********END DUMB REDEFINES*************/
-pub struct HeaderInfo {
-  pub psid: Psid,
-  pub generationTime: Time64,
-  pub exipryTime: Time64,
-  pub p2pcdLearningRequest: HasedId3,
-}
+
+//Read up on the option featuer more. It is actually just a fancy enum with generic types. 
+//Essentially like casting to void* but a bit harder to extract the actual info.
+//Must use a match statement which handles the "None" (Null) case, and the Some(x) case. In handling the
+//Some(x) case x is the value that was put inside the Option (x is just a random variable name. It can be literally anything).
+//In order to extract that value, you would need to save it to another temporary storage place. 
+
 pub enum ResultCode_SecSignedData {
   Success,
   IncorrectInput,
@@ -87,10 +88,19 @@ pub enum SignerIdentifier {
 }
 
 pub struct HeaderInfo {
+  pub psid: Psid,
+  pub generationTime: Option<Time64>,
+  pub exipryTime: Option<Time64>,
+  pub p2pcdLearningRequest: Option<HasedId3>
+  //TODO pub missingCrlIdentifier: 
+  //TODO pub encryiptonKey: Option<EncryptionKey>
+}
+/*
+pub struct HeaderInfo {
   pub psid: u64,
   pub generation_time: u64,
   pub expiry_time: u64,
-}
+}*/
 
 pub struct HashedData {
   pub sha256HashedData: [char; 32]
