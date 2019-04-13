@@ -2,6 +2,24 @@
 //Consider looking at D.5.1 and beyond for information regarding what they want certificate structure to look like.
 //Annex B contains condensed data structure info, including Certificate stuff
 
+//Defining Standards dumb redefines of things
+type Psid   = u64;
+type Time64 = u64;
+type ThreeDLocation = [i64;3];
+type TwoDLocation   = [i64;2];
+type HashedId3      = [char;3];
+type HashedId4      = [char;4];
+type HashedId8      = [char;8];
+type HashedId10     = [char;10];
+type HashedId32     = [char;32];
+
+//***********END DUMB REDEFINES*************/
+pub struct HeaderInfo {
+  pub psid: Psid,
+  pub generationTime: Time64,
+  pub exipryTime: Time64,
+  pub p2pcdLearningRequest: HasedId3,
+}
 pub enum ResultCode_SecSignedData {
   Success,
   IncorrectInput,
@@ -26,7 +44,6 @@ pub enum ResultCode_SecSignedData {
   IncorrectReqCertChainLengthForSecProfile,
   IncorrectReqCertChainLengthForImpl,
 }
-
 pub enum HashAlgo {
   sha256
 }
@@ -208,47 +225,46 @@ pub enum IdentifierType_SSMECertificateInfo {
 }
 //Anyhting that contians VEC may be replaced a vector of octects so that they can have a variable number contained
 pub struct SSMEAddTrustAnchorData {
-  pub ResultCode: ResultCode_SSMEAddTrustAnchor
+  pub resultCode: ResultCode_SSMEAddTrustAnchor
 }
 pub struct SSMEAddCertificateData {
-  pub ResultCode: ResultCode_SSMECertificateInfo
+  pub resultCode: ResultCode_SSMECertificateInfo
 }
 pub struct SSMEVerifyCertificateData {
-  pub ResultCode: ResultCode_SSMEVerifyCertificate
+  pub resultCode: ResultCode_SSMEVerifyCertificate
 }
 pub struct SSMEDeleteCertificateData {
-  pub ResultCode: ResultCode_SSMEDeleteCertificate
+  pub resultCode: ResultCode_SSMEDeleteCertificate
 }
 pub struct SSMEAddHashIdBasedRevocationData {
-  pub ResultCode: ResultCode_SSMEAddHashIdBasedRevocation
+  pub resultCode: ResultCode_SSMEAddHashIdBasedRevocation
 }
 pub struct SSMEAddIndividualLinkageBasedRevocationData {
-  pub ResultCode: ResultCode_SSMEAddIndividualLinkageBasedRevocation
+  pub resultCode: ResultCode_SSMEAddIndividualLinkageBasedRevocation
 }
 pub struct SSMEAddGroupLinkageBasedRevocationData {
-  pub ResultCode: ResultCode_SSMEAddGroupLinkageBasedRevocation
+  pub resultCode: ResultCode_SSMEAddGroupLinkageBasedRevocation
 }
 pub struct SSMECertificateInfoData {
-  pub ResultCode: ResultCode_SSMECertificateInfo,
-  pub CertificateDataVEC: [char;8],
-  pub GeographicScopeVEC: [char;8],
-  pub LastReceiverCRLTime: LastReceivedCRLTime,
-  pub NextExpectedCRLTime: NextExpectedCRLTime,
-  pub TrustAnchor: bool,
-  pub Verified: bool
+  pub resultCode: ResultCode_SSMECertificateInfo,
+  pub certificateDataVEC: [char;8],
+  pub geographicScopeVEC: [char;8],
+  pub lastReceiverCRLTime: LastReceivedCRLTime,
+  pub nextExpectedCRLTime: NextExpectedCRLTime,
+  pub trustAnchor: bool,
+  pub verified: bool
 }
 pub enum SSMERevocationType {
   HashIDBased, LinkageIDBased,
 }
 pub struct SSMERevocationInformationStatusData {
-  pub ResultCode: ResultCode_SSMERevocationInformationStatus,
-  pub RevocationType: SSMERevocationType,
-  pub IssueDate: i64,
-  pub NextCRL: i64
+  pub resultCode: ResultCode_SSMERevocationInformationStatus,
+  pub revocationType: SSMERevocationType,
+  pub issueDate: i64,
+  pub nextCRL: i64
 }
 pub struct SSMESecIncomingP2pcdInfoData {
   pub RequestActiveForCertificate: bool,
   pub RequestActiveForP2PCDLearningRequest: bool,
   pub ResponseActiveForP2PCDLearningRequest: bool
 }
-

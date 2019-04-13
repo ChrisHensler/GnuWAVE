@@ -3,7 +3,7 @@ pub trait Tester{
   fn getme(&self) -> String;
 }
 pub trait SSMETraits {
-  fn CertificateInfo(&self,IdentifierType_SSMECertificateInfo, [char;8]) -> SSMECertificateInfoData;
+  fn CertificateInfo(&self,IdentifierType: IdentifierType_SSMECertificateInfo, Identifier: [char;8]) -> SSMECertificateInfoData;
   fn AddTrustAnchor(&self) -> SSMEAddTrustAnchorData;
   fn AddCertificate(&self) -> SSMEAddCertificateData;
   fn VerifyCertificate(&self) -> SSMEVerifyCertificateData;
