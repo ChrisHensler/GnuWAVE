@@ -173,7 +173,7 @@ pub enum ResultCode_SSMEVerifyCertificate {
 pub enum ResultCode_SSMEDeleteCertificate {
   Success, InvalidInput,
 }
-pub enum ResultCode_AddHashIdBasedRevocation {
+pub enum ResultCode_SSMEAddHashIdBasedRevocation {
   Success, InvalidInput,
 }
 pub enum ResultCode_SSMEAddIndividualLinkageBasedRevocation {
@@ -191,3 +191,60 @@ pub enum ResultCode_SSMEP2pcdConfiguration {
 pub enum ResultCode_SSMESecReplayDetection {
   Replay,NotReplay,
 }
+pub enum LastReceivedCRLTime {
+  Date(i64),
+  NONE,
+}
+pub enum NextExpectedCRLTime {
+  Date(i64),
+  Unknown,
+}
+pub enum IdentifierType_SSMECertificateInfo {
+  Certificate, HashedId8, HashedId10,
+}
+//Anyhting that contians VEC may be replaced a vector of octects so that they can have a variable number contained
+pub struct SSMEAddTrustAnchorData {
+  pub ResultCode: ResultCode_SSMEAddTrustAnchor
+}
+pub struct SSMEAddCertificateData {
+  pub ResultCode: ResultCode_SSMECertificateInfo
+}
+pub struct SSMEVerifyCertificateData {
+  pub ResultCode: ResultCode_SSMEVerifyCertificate
+}
+pub struct SSMEDeleteCertificateData {
+  pub ResultCode: ResultCode_SSMEDeleteCertificate
+}
+pub struct SSMEAddHashIdBasedRevocationData {
+  pub ResultCode: ResultCode_SSMEAddHashIdBasedRevocation
+}
+pub struct SSMEAddIndividualLinkageBasedRevocationData {
+  pub ResultCode: ResultCode_SSMEAddIndividualLinkageBasedRevocation
+}
+pub struct SSMEAddGroupLinkageBasedRevocationData {
+  pub ResultCode: ResultCode_SSMEAddGroupLinkageBasedRevocation
+}
+pub struct SSMECertificateInfoData {
+  pub ResultCode: ResultCode_SSMECertificateInfo,
+  pub CertificateDataVEC: [char;8],
+  pub GeographicScopeVEC: [char;8],
+  pub LastReceiverCRLTime: LastReceivedCRLTime,
+  pub NextExpectedCRLTime: NextExpectedCRLTime,
+  pub TrustAnchor: bool,
+  pub Verified: bool
+}
+pub enum SSMERevocationType {
+  HashIDBased, LinkageIDBased,
+}
+pub struct SSMERevocationInformationStatusData {
+  pub ResultCode: ResultCode_SSMERevocationInformationStatus,
+  pub RevocationType: SSMERevocationType,
+  pub IssueDate: i64,
+  pub NextCRL: i64
+}
+pub struct SSMESecIncomingP2pcdInfoData {
+  pub RequestActiveForCertificate: bool,
+  pub RequestActiveForP2PCDLearningRequest: bool,
+  pub ResponseActiveForP2PCDLearningRequest: bool
+}
+
