@@ -1,3 +1,7 @@
+//Consider Reading over Annex C. It may have some useful information for us. Its a bit long, but it does... things.
+//Consider looking at D.5.1 and beyond for information regarding what they want certificate structure to look like.
+//Annex B contains condensed data structure info, including Certificate stuff
+
 pub enum ResultCode_SecSignedData {
   Success,
   IncorrectInput,
