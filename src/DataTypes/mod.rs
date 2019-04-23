@@ -19,6 +19,16 @@ type LinkageValue     = [char; 9];
 type LinkageSeed      = [char; 16];
 type LaId             = [char; 2];
 type SubjectAssruance = [char;1];
+type CountryOnly      = u16;
+type PolygonalRegion  = Vec<TwoDLocation>;
+//##### Sequence Definitions #### /
+type SequenceOfPsid   = Vec<Psid>;
+type SequenceOfOctect = Vec<Vec<char>>;
+type SequenceOfUint16 = Vec<u16>;
+type SequenceOfRegionAndSubregions = Vec<RegionAndSubregions>;
+type SequenceOfUint8  = Vec<u8>;
+type SequenceOfRectangularRegion = Vec<RectangularRegion>;
+type SequenceOfIndentifiedRegion = Vec<IdentifiedRegion>;
 //***********END DUMB REDEFINES*************/
 
 //Read up on the option featuer more. It is actually just a fancy enum with generic types. 
@@ -54,6 +64,37 @@ pub enum ResultCode_SecSignedData {
 pub enum HashAlgo {
   sha256
 }
+pub struct RectangularRegion {
+  pub northWest: TwoDLocation,
+  pub southEast: TwoDLocation
+}
+pub struct CircularRegion {
+  pub center: TwoDLocation,
+  pub radius: u16
+}
+pub enum GeographicRegion {
+  CircularRegion(CircularRegion),
+  RectangularRegion(SequenceOfRectangularRegion),
+  PolygonalRegion(PolygonalRegion),
+  IdentifiedRegion(SequenceOfIndentifiedRegion)
+}
+pub enum IdentifiedRegion {
+  CountryOnly(CountryOnly),
+  CountryAndRegions(CountryAndRegions),
+  CountryAndSubregions(CountryAndSubregions),
+}
+pub struct CountryAndRegions {
+  pub countryOnly: CountryOnly,
+  pub regions: SequenceOfUint8
+}
+pub struct CountryAndSubregions {
+  pub country: CountryOnly,
+  pub regionAndSubregions: SequenceOfRegionAndSubregions,
+}
+pub struct RegionAndSubregions {
+  pub region: u8,
+  pub subregions: SequenceOfUint16
+}
 pub enum Duration {
   Microseconds(u16),
   Milliseconds(u16),
@@ -81,12 +122,20 @@ pub enum FastVerificationOptions {
   Uncompressed,
   No
 }
+pub struct PsidSspRange {
+  pub psid: Psid,
+  pub sspRange: Option<SspRange>
+}
+pub enum SspRange {
+  opaque(SequenceOfOctect),
+  all,
+}
 pub struct ToBeSignedCertificate {
   id: CertificateId,
   cracaId: HashedId3,
   //crlSeries:
   validityPeriod: ValidityPeriod,
-  //region: Option<GeographicRegion>,
+  region: Option<GeographicRegion>,
   assuranceLevel: Option<SubjectAssurance>,
   //appPermissions:
   //certIssuePermissions:
