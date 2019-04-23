@@ -5,14 +5,20 @@
 //Defining Standards dumb redefines of things
 type Psid   = u64;
 type Time64 = u64;
-type ThreeDLocation = [i64;3];
-type TwoDLocation   = [i64;2];
-type HashedId3      = [char;3];
-type HashedId4      = [char;4];
-type HashedId8      = [char;8];
-type HashedId10     = [char;10];
-type HashedId32     = [char;32];
-
+type Time32 = u32;
+type ThreeDLocation   = [i64;3];
+type TwoDLocation     = [i64;2];
+type HashedId3        = [char;3];
+type HashedId4        = [char;4];
+type HashedId8        = [char;8];
+type HashedId10       = [char;10];
+type HashedId32       = [char;32];
+type IValue           = u16;
+type Hostname         = String;
+type LinkageValue     = [char; 9];
+type LinkageSeed      = [char; 16];
+type LaId             = [char; 2];
+type SubjectAssruance = [char;1];
 //***********END DUMB REDEFINES*************/
 
 //Read up on the option featuer more. It is actually just a fancy enum with generic types. 
@@ -48,6 +54,19 @@ pub enum ResultCode_SecSignedData {
 pub enum HashAlgo {
   sha256
 }
+pub enum Duration {
+  Microseconds(u16),
+  Milliseconds(u16),
+  Seconds(u16),
+  Minutes(u16),
+  Hours(u16),
+  SixtyHours(u16),
+  Years(u16),
+}
+pub struct ValidityPeriod {
+  pub start: Time32,
+  pub duration: Duration
+}
 pub enum SignerIdType {
   Certificate,
   Digest,
@@ -61,6 +80,49 @@ pub enum FastVerificationOptions {
   Compressed,
   Uncompressed,
   No
+}
+pub struct ToBeSignedCertificate {
+  id: CertificateId,
+  cracaId: HashedId3,
+  //crlSeries:
+  validityPeriod: ValidityPeriod,
+  //region: Option<GeographicRegion>,
+  assuranceLevel: Option<SubjectAssurance>,
+  //appPermissions:
+  //certIssuePermissions:
+  //certRequestPermissions:
+  //canRequestRollover:
+  //encryptionKey:
+  //verifyKeyIndicator: 
+}
+pub struct GroupLinkageValue {
+  pub jValue: [char;4],
+  pub value: [char;9]
+}
+pub enum CertificateId {
+  LinkageData(LinkageData),
+  Name(String),
+  BinaryId([char;64]),
+  none
+}
+pub struct LinkageData {
+  pub iCert: IValue,
+  pub linkageValue: LinkageValue,
+  pub groupLinkageValue: Option<GroupLinkageValue>
+}
+pub struct PsidGroupPermissions {
+  pub appPermisions: SubjectPermissions,
+  pub minChainDepth: u64,
+  pub chainDepthRange: u64,
+  pub eeType: [char;8] //EndEntityType
+}
+pub enum SubjectPermissions {
+  Explicit(),
+  All,
+}
+pub enum VerificationKeyIndicator {
+  VerificationKey,
+  ReconstructionValue(EccP256CurvePoint),
 }
 
 pub enum EccP256CurvePoint {
@@ -90,17 +152,11 @@ pub enum SignerIdentifier {
 pub struct HeaderInfo {
   pub psid: Psid,
   pub generationTime: Option<Time64>,
-  pub exipryTime: Option<Time64>,
-  pub p2pcdLearningRequest: Option<HasedId3>
+  pub expiryTime: Option<Time64>,
+  //pub p2pcdLearningRequest: Option<HashedId3>
   //TODO pub missingCrlIdentifier: 
   //TODO pub encryiptonKey: Option<EncryptionKey>
 }
-/*
-pub struct HeaderInfo {
-  pub psid: u64,
-  pub generation_time: u64,
-  pub expiry_time: u64,
-}*/
 
 pub struct HashedData {
   pub sha256HashedData: [char; 32]

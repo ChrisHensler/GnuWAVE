@@ -65,8 +65,8 @@ impl TraitSecureDataService for SecureDataService {
       },
       header_info: HeaderInfo {
         psid: psid,
-        generation_time: 0,
-        expiry_time: 0,
+        generationTime: Some(0),
+        expiryTime: Some(0),
       },
     };
 
