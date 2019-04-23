@@ -2,6 +2,9 @@
 //Consider looking at D.5.1 and beyond for information regarding what they want certificate structure to look like.
 //Annex B contains condensed data structure info, including Certificate stuff
 
+//UPDATE: As of 4/23 all Location types should be defined, excluding the bounding ranges on lat,long and elevation. Those should be checked inside struct constrcutor or functional implementation
+
+
 //Defining Standards dumb redefines of things
 type Psid   = u64;
 type Time64 = u64;
