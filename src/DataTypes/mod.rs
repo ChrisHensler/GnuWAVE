@@ -54,7 +54,9 @@ type SequenceOfPsidSsp              = Vec<PsidSsp>;
 //Must use a match statement which handles the "None" (Null) case, and the Some(x) case. In handling the
 //Some(x) case x is the value that was put inside the Option (x is just a random variable name. It can be literally anything).
 //In order to extract that value, you would need to save it to another temporary storage place. 
-
+//trait Serialization {
+//  pub fn Serialize(&self) -> String;
+//}
 pub enum ResultCode_SecSignedData {
   Success,
   IncorrectInput,
@@ -494,3 +496,9 @@ pub struct SSMESecIncomingP2pcdInfoData {
   pub RequestActiveForP2PCDLearningRequest: bool,
   pub ResponseActiveForP2PCDLearningRequest: bool
 }
+/**********Begin Implementation of Serialization Trait********/
+/*impl Serialization for HeaderInfo {
+  pub fn Serialize(&self) ->String  {
+    String::from("test")
+  }
+}*/
