@@ -24,6 +24,9 @@ type LaId             = [char; 2];
 type SubjectAssruance = [char;1];
 type CountryOnly      = u16;
 type PolygonalRegion  = Vec<TwoDLocation>;
+type CrlSeries        = u16;
+type CrlPriorityInfo  = u8;
+type PermissibleCrls  = SequenceOfCrlSeries;
 //##### Sequence Definitions #### /
 type SequenceOfPsid   = Vec<Psid>;
 type SequenceOfOctect = Vec<Vec<char>>;
@@ -32,6 +35,15 @@ type SequenceOfRegionAndSubregions = Vec<RegionAndSubregions>;
 type SequenceOfUint8  = Vec<u8>;
 type SequenceOfRectangularRegion = Vec<RectangularRegion>;
 type SequenceOfIndentifiedRegion = Vec<IdentifiedRegion>;
+type SequenceOfPsidGroupPermissions = Vec<PsidGroupPermissions>;
+type SequenceOfPsidSspRange         = Vec<PsidSspRange>;
+type SequenceOfHashBasedRevocationInfo = Vec<HashBasedRevocationInfo>;
+type SequenceOfGroupCrlEntry        = Vec<GroupCrlEntry>;
+type SequenceOfIndividualRevocation = Vec<IndividualRevocation>;
+type SequenceOfIMaxGroup            = Vec<IMaxGroup>;
+type SequenceOfLAGroup              = Vec<LAGroup>;
+type SequenceOfJMaxGroup            = Vec<JMaxGroup>;
+type SequenceOfCrlSeries            = Vec<CrlSeries>;
 //***********END DUMB REDEFINES*************/
 
 //Read up on the option featuer more. It is actually just a fancy enum with generic types. 
@@ -63,6 +75,66 @@ pub enum ResultCode_SecSignedData {
   InconsistentCertPermissions,
   IncorrectReqCertChainLengthForSecProfile,
   IncorrectReqCertChainLengthForImpl,
+}
+pub enum CracaType {
+  IsCraca, IssuerIsCraca,
+}
+pub struct CrlSsp {
+  version: u8,
+  associatedCraca: CracaType,
+  crls: PermissibleCrls
+}
+pub struct ToBeSignedLinkageValueCrl {
+  iRev: IValue,
+  indexWithinI: u8,
+  individual: Option<SequenceOfJMaxGroup>,
+  groups: Option<SequenceOfGroupCrlEntry>
+}
+pub struct JMaxGroup {
+  pub jmax: u8,
+  pub contents: SequenceOfLAGroup
+}
+pub struct LAGroup {
+  pub la1Id: LaId,
+  pub la2Id: LaId,
+  pub contents: SequenceOfIMaxGroup
+}
+pub struct IMaxGroup {
+  pub iMax: u16,
+  pub contents: SequenceOfIndividualRevocation
+}
+pub struct IndividualRevocation {
+  pub linkage-seed1: LinkageSeed,
+  pub linkage-seed2: LinkageSeed
+}
+pub struct GroupCrlEntry {
+  pub iMax: u16,
+  pub la1Id: LaId,
+  pub linkageSeed1: LinkageSeed,
+  pub la2Id: LaId,
+  pub linkageSeed2: LinkageSeed
+}
+pub enum CrlContents {
+  FullHashCrl(ToBeSignedHashIdCrl),
+  DeltaHashCrl(ToBeSignedHashIdCrl),
+  FullLinkedCrl(ToBeSignedLinkageValueCrl),
+  DeltaLinkedCrl(ToBeSignedLinkageValueCrl),
+}
+pub struct HashBasedRevocationInfo {
+  pub id: HashedId10,
+  pub expiry: Time32
+}
+pub struct ToBeSignedHashIdCrl {
+  crlSeries: u32,
+  entries: SequenceOfHashBasedRevocationInfo
+}
+pub struct CrlContents {
+  pub version: u8,
+  pub crlSeries: CrlSeries,
+  pub cracaId: HashedId8,
+  pub issueDate: Time32,
+  pub nextCrl: Time32,
+  pub priorityInfo: Option<CrlPriorityInfo>;
 }
 pub enum HashAlgo {
   sha256
@@ -133,6 +205,17 @@ pub enum SspRange {
   opaque(SequenceOfOctect),
   all,
 }
+pub struct CertificateBase {
+  pub version: [u8;3],
+  pub certificateType: CertificateType,
+  pub issuer: IssuerIdentifier,
+  pub toBeSigned: ToBeSignedCertificate,
+  pub signature: Option<Signature>
+}
+pub enum CertificateType {
+  Explicit,
+  Implicit
+}
 pub struct ToBeSignedCertificate {
   id: CertificateId,
   cracaId: HashedId3,
@@ -169,7 +252,7 @@ pub struct PsidGroupPermissions {
   pub eeType: [char;8] //EndEntityType
 }
 pub enum SubjectPermissions {
-  Explicit(),
+  Explicit(SequenceOfPsidSspRange),
   All,
 }
 pub enum VerificationKeyIndicator {
