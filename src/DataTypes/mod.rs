@@ -4,6 +4,7 @@
 
 //UPDATE: As of 4/23 all Location types should be defined, excluding the bounding ranges on lat,long and elevation. Those should be checked inside struct constrcutor or functional implementation
 
+type TOBEIMPLEMENTED = u8;
 
 //Defining Standards dumb redefines of things
 type Psid   = u64;
@@ -44,6 +45,7 @@ type SequenceOfIMaxGroup            = Vec<IMaxGroup>;
 type SequenceOfLAGroup              = Vec<LAGroup>;
 type SequenceOfJMaxGroup            = Vec<JMaxGroup>;
 type SequenceOfCrlSeries            = Vec<CrlSeries>;
+type SequenceOfPsidSsp              = Vec<PsidSsp>;
 //***********END DUMB REDEFINES*************/
 
 //Read up on the option featuer more. It is actually just a fancy enum with generic types. 
@@ -76,19 +78,26 @@ pub enum ResultCode_SecSignedData {
   IncorrectReqCertChainLengthForSecProfile,
   IncorrectReqCertChainLengthForImpl,
 }
+pub enum ServiceSpecificPermissions {
+  opaque(Vec<char>),
+}
+pub struct PsidSsp {
+  pub psid: Psid,
+  pub ssp: Option<ServiceSpecificPermissions>
+}
 pub enum CracaType {
   IsCraca, IssuerIsCraca,
 }
 pub struct CrlSsp {
-  version: u8,
-  associatedCraca: CracaType,
-  crls: PermissibleCrls
+  pub version: u8,
+  pub associatedCraca: CracaType,
+  pub crls: PermissibleCrls
 }
 pub struct ToBeSignedLinkageValueCrl {
-  iRev: IValue,
-  indexWithinI: u8,
-  individual: Option<SequenceOfJMaxGroup>,
-  groups: Option<SequenceOfGroupCrlEntry>
+  pub iRev: IValue,
+  pub indexWithinI: u8,
+  pub individual: Option<SequenceOfJMaxGroup>,
+  pub groups: Option<SequenceOfGroupCrlEntry>
 }
 pub struct JMaxGroup {
   pub jmax: u8,
@@ -125,8 +134,8 @@ pub struct HashBasedRevocationInfo {
   pub expiry: Time32
 }
 pub struct ToBeSignedHashIdCrl {
-  crlSeries: u32,
-  entries: SequenceOfHashBasedRevocationInfo
+  pub crlSeries: u32,
+  pub entries: SequenceOfHashBasedRevocationInfo
 }
 pub struct CrlContents {
   pub version: u8,
@@ -205,6 +214,10 @@ pub enum SspRange {
   opaque(SequenceOfOctect),
   all,
 }
+pub struct IssuerIdentifier {
+  pub sha256AndDigest: HashedId8,
+  pub hashAlgorithm: HashAlgo
+}
 pub struct CertificateBase {
   pub version: [u8;3],
   pub certificateType: CertificateType,
@@ -217,18 +230,18 @@ pub enum CertificateType {
   Implicit
 }
 pub struct ToBeSignedCertificate {
-  id: CertificateId,
-  cracaId: HashedId3,
-  //crlSeries:
-  validityPeriod: ValidityPeriod,
-  region: Option<GeographicRegion>,
-  assuranceLevel: Option<SubjectAssurance>,
-  //appPermissions:
-  //certIssuePermissions:
-  //certRequestPermissions:
-  //canRequestRollover:
-  //encryptionKey:
-  //verifyKeyIndicator: 
+  pub id: CertificateId,
+  pub cracaId: HashedId3,
+  pub crlSeries: CrlSeries,
+  pub validityPeriod: ValidityPeriod,
+  pub region: Option<GeographicRegion>,
+  pub assuranceLevel: Option<SubjectAssurance>,
+  pub appPermissions: Option<SequenceOfPsidSsp>
+  pub certIssuePermissions: Option<SequenceOfPsidGroupPermissions>,
+  pub certRequestPermissions: Option<SequenceOfPsidGroupPermissions>,
+  pub canRequestRollover: Option<TOBEIMPLEMENTED>,
+  pub encryptionKey: Option<TOBEIMPLEMENTED>,
+  pub verifyKeyIndicator: Option<TOBEIMPLEMENTED>
 }
 pub struct GroupLinkageValue {
   pub jValue: [char;4],
@@ -256,7 +269,7 @@ pub enum SubjectPermissions {
   All,
 }
 pub enum VerificationKeyIndicator {
-  VerificationKey,
+  VerificationKey(TOBEIMPLEMENTED),
   ReconstructionValue(EccP256CurvePoint),
 }
 
