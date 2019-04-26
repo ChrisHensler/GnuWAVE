@@ -28,6 +28,7 @@ type PolygonalRegion  = Vec<TwoDLocation>;
 type CrlSeries        = u16;
 type CrlPriorityInfo  = u8;
 type PermissibleCrls  = SequenceOfCrlSeries;
+type PreSharedKeyRecipientInfo = HashedId8;
 //##### Sequence Definitions #### /
 type SequenceOfPsid   = Vec<Psid>;
 type SequenceOfOctect = Vec<Vec<char>>;
@@ -303,14 +304,18 @@ pub enum SignerIdentifier {
   digest([char;8]),
   self_signed(bool),
 }
-
+pub struct MissingCrlIdentifier {
+  pub cracaId: HashedId3,
+  pub crlSeries: CrlSeries
+}
 pub struct HeaderInfo {
   pub psid: Psid,
   pub generationTime: Option<Time64>,
   pub expiryTime: Option<Time64>,
-  //pub p2pcdLearningRequest: Option<HashedId3>
-  //TODO pub missingCrlIdentifier: 
-  //TODO pub encryiptonKey: Option<EncryptionKey>
+  pub generationLocation: Option<ThreeDLocation>,
+  pub p2pcdLearningRequest: Option<HashedId3>, 
+  pub missingCrlIdentifier: Option<MissingCrlIdentifier>,
+  pub encryptionKey: Option<TOBEIMPLEMENTED>
 }
 
 pub struct HashedData {

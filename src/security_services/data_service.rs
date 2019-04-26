@@ -65,8 +65,12 @@ impl TraitSecureDataService for SecureDataService {
       },
       header_info: HeaderInfo {
         psid: psid,
-        generationTime: Some(0),
-        expiryTime: Some(0),
+        generationTime: None,
+        expiryTime: None,
+        generationLocation: None,
+        p2pcdLearningRequest: None,
+        missingCrlIdentifier: None,
+        encryptionKey: None
       },
     };
 
