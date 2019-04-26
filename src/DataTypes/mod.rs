@@ -22,7 +22,7 @@ type Hostname         = String;
 type LinkageValue     = [char; 9];
 type LinkageSeed      = [char; 16];
 type LaId             = [char; 2];
-type SubjectAssruance = [char;1];
+type SubjectAssurance = [char;1];
 type CountryOnly      = u16;
 type PolygonalRegion  = Vec<TwoDLocation>;
 type CrlSeries        = u16;
@@ -113,8 +113,8 @@ pub struct IMaxGroup {
   pub contents: SequenceOfIndividualRevocation
 }
 pub struct IndividualRevocation {
-  pub linkage-seed1: LinkageSeed,
-  pub linkage-seed2: LinkageSeed
+  pub linkageSeed1: LinkageSeed,
+  pub linkageSeed2: LinkageSeed
 }
 pub struct GroupCrlEntry {
   pub iMax: u16,
@@ -123,7 +123,7 @@ pub struct GroupCrlEntry {
   pub la2Id: LaId,
   pub linkageSeed2: LinkageSeed
 }
-pub enum CrlContents {
+pub enum CrlContentTypes {
   FullHashCrl(ToBeSignedHashIdCrl),
   DeltaHashCrl(ToBeSignedHashIdCrl),
   FullLinkedCrl(ToBeSignedLinkageValueCrl),
@@ -143,7 +143,8 @@ pub struct CrlContents {
   pub cracaId: HashedId8,
   pub issueDate: Time32,
   pub nextCrl: Time32,
-  pub priorityInfo: Option<CrlPriorityInfo>;
+  pub priorityInfo: Option<CrlPriorityInfo>,
+  pub crlType: CrlContentTypes
 }
 pub enum HashAlgo {
   sha256
@@ -236,7 +237,7 @@ pub struct ToBeSignedCertificate {
   pub validityPeriod: ValidityPeriod,
   pub region: Option<GeographicRegion>,
   pub assuranceLevel: Option<SubjectAssurance>,
-  pub appPermissions: Option<SequenceOfPsidSsp>
+  pub appPermissions: Option<SequenceOfPsidSsp>,
   pub certIssuePermissions: Option<SequenceOfPsidGroupPermissions>,
   pub certRequestPermissions: Option<SequenceOfPsidGroupPermissions>,
   pub canRequestRollover: Option<TOBEIMPLEMENTED>,
