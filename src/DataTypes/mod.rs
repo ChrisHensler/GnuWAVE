@@ -286,7 +286,13 @@ pub struct EcdsaP256Signature {
   pub r: EccP256CurvePoint,
   pub s: [char; 32]
 }
-
+pub enum Algorithm {
+  EcdsaBrainPoolP256r1WithSha256,
+  EcdsaNistP256WithSha256,
+  EciesNistp256,
+  EciesBrainpoolP256r1,
+  Aes128Ccm,
+}
 pub enum Signature {
   ecdsaNistP256Signature(EcdsaP256Signature),
   ecdsaBrainpoolP256r1Signature(EcdsaP256Signature),
