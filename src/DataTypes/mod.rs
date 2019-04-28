@@ -3,26 +3,27 @@
 //Annex B contains condensed data structure info, including Certificate stuff
 
 //UPDATE: As of 4/23 all Location types should be defined, excluding the bounding ranges on lat,long and elevation. Those should be checked inside struct constrcutor or functional implementation
-
+extern crate hex;
 type TOBEIMPLEMENTED = u8;
 
+type Octet  = u8;
 //Defining Standards dumb redefines of things
 type Psid   = u64;
 type Time64 = u64;
 type Time32 = u32;
 type ThreeDLocation   = [i64;3];
 type TwoDLocation     = [i64;2];
-type HashedId3        = [char;3];
-type HashedId4        = [char;4];
-type HashedId8        = [char;8];
-type HashedId10       = [char;10];
-type HashedId32       = [char;32];
+type HashedId3        = [Octet;3];
+type HashedId4        = [Octet;4];
+type HashedId8        = [Octet;8];
+type HashedId10       = [Octet;10];
+type HashedId32       = [Octet;32];
 type IValue           = u16;
 type Hostname         = String;
-type LinkageValue     = [char; 9];
-type LinkageSeed      = [char; 16];
-type LaId             = [char; 2];
-type SubjectAssurance = [char;1];
+type LinkageValue     = [Octet; 9];
+type LinkageSeed      = [Octet; 16];
+type LaId             = [Octet; 2];
+type SubjectAssurance = [Octet;1];
 type CountryOnly      = u16;
 type PolygonalRegion  = Vec<TwoDLocation>;
 type CrlSeries        = u16;
@@ -31,7 +32,7 @@ type PermissibleCrls  = SequenceOfCrlSeries;
 type PreSharedKeyRecipientInfo = HashedId8;
 //##### Sequence Definitions #### /
 type SequenceOfPsid   = Vec<Psid>;
-type SequenceOfOctect = Vec<Vec<char>>;
+type SequenceOfOctet = Vec<Vec<Octet>>;
 type SequenceOfUint16 = Vec<u16>;
 type SequenceOfRegionAndSubregions = Vec<RegionAndSubregions>;
 type SequenceOfUint8  = Vec<u8>;
@@ -54,9 +55,9 @@ type SequenceOfPsidSsp              = Vec<PsidSsp>;
 //Must use a match statement which handles the "None" (Null) case, and the Some(x) case. In handling the
 //Some(x) case x is the value that was put inside the Option (x is just a random variable name. It can be literally anything).
 //In order to extract that value, you would need to save it to another temporary storage place. 
-//trait Serialization {
-//  pub fn Serialize(&self) -> String;
-//}
+pub trait Serialization {
+  fn Serialize(&self) -> String;
+}
 pub enum ResultCode_SecSignedData {
   Success,
   IncorrectInput,
@@ -82,7 +83,7 @@ pub enum ResultCode_SecSignedData {
   IncorrectReqCertChainLengthForImpl,
 }
 pub enum ServiceSpecificPermissions {
-  opaque(Vec<char>),
+  opaque(Vec<Octet>),
 }
 pub struct PsidSsp {
   pub psid: Psid,
@@ -215,7 +216,7 @@ pub struct PsidSspRange {
   pub sspRange: Option<SspRange>
 }
 pub enum SspRange {
-  opaque(SequenceOfOctect),
+  opaque(SequenceOfOctet),
   all,
 }
 pub struct IssuerIdentifier {
@@ -248,13 +249,13 @@ pub struct ToBeSignedCertificate {
   pub verifyKeyIndicator: Option<TOBEIMPLEMENTED>
 }
 pub struct GroupLinkageValue {
-  pub jValue: [char;4],
-  pub value: [char;9]
+  pub jValue: [Octet;4],
+  pub value: [Octet;9]
 }
 pub enum CertificateId {
   LinkageData(LinkageData),
   Name(String),
-  BinaryId([char;64]),
+  BinaryId([Octet;64]),
   none
 }
 pub struct LinkageData {
@@ -266,7 +267,7 @@ pub struct PsidGroupPermissions {
   pub appPermisions: SubjectPermissions,
   pub minChainDepth: u64,
   pub chainDepthRange: u64,
-  pub eeType: [char;8] //EndEntityType
+  pub eeType: [Octet;8] //EndEntityType
 }
 pub enum SubjectPermissions {
   Explicit(SequenceOfPsidSspRange),
@@ -278,16 +279,16 @@ pub enum VerificationKeyIndicator {
 }
 
 pub enum EccP256CurvePoint {
-  xOnly([char; 32]),
+  xOnly([Octet; 32]),
   fill(),
-  compressed_Y_0([char; 32]),
-  compressed_Y_1([char; 32]),
-  uncompressed ([char; 32],[char; 32])
+  compressed_Y_0([Octet; 32]),
+  compressed_Y_1([Octet; 32]),
+  uncompressed ([Octet; 32],[Octet; 32])
 }
 
 pub struct EcdsaP256Signature {
   pub r: EccP256CurvePoint,
-  pub s: [char; 32]
+  pub s: [Octet; 32]
 }
 pub enum Algorithm {
   EcdsaBrainPoolP256r1WithSha256,
@@ -303,7 +304,7 @@ pub enum Signature {
 
 pub enum SignerIdentifier {
   Certificate(String),
-  digest([char;8]),
+  digest([Octet;8]),
   self_signed(bool),
 }
 pub struct MissingCrlIdentifier {
@@ -321,7 +322,7 @@ pub struct HeaderInfo {
 }
 
 pub struct HashedData {
-  pub sha256HashedData: [char; 32]
+  pub sha256HashedData: [Octet; 32]
 }
 
 pub struct SignedDataPayload {
@@ -475,8 +476,8 @@ pub struct SSMEAddGroupLinkageBasedRevocationData {
 }
 pub struct SSMECertificateInfoData {
   pub resultCode: ResultCode_SSMECertificateInfo,
-  pub certificateDataVEC: [char;8],
-  pub geographicScopeVEC: [char;8],
+  pub certificateDataVEC: [Octet;8],
+  pub geographicScopeVEC: [Octet;8],
   pub lastReceiverCRLTime: LastReceivedCRLTime,
   pub nextExpectedCRLTime: NextExpectedCRLTime,
   pub trustAnchor: bool,
@@ -497,8 +498,169 @@ pub struct SSMESecIncomingP2pcdInfoData {
   pub ResponseActiveForP2PCDLearningRequest: bool
 }
 /**********Begin Implementation of Serialization Trait********/
-/*impl Serialization for HeaderInfo {
-  pub fn Serialize(&self) ->String  {
-    String::from("test")
+pub enum itype {
+  i8(i8),
+  i16(i16),
+  i32(i32),
+  i64(i64),
+  i128(i128),
+  u8(u8),
+  u16(u16),
+  u32(u32),
+  u64(u64),
+  u128(u128),
+  f32(f32),
+  f64(f64)
+}
+fn convert_to_u8vec(variable: itype) -> Vec<u8>
+{
+  let mut ret: Vec<u8> = Vec::new();
+  match variable {
+    itype::i8(x) => {
+      ret.push(x as u8);
+    },
+    itype::i16(x) => {
+      ret.push(((x>>8)&0xff)as u8);
+      ret.push((x&0xff)as u8);
+    },
+    itype::i32(x) => {
+      ret.push(((x>>24)&0xff)as u8);
+      ret.push(((x>>16)&0xff)as u8);
+      ret.push(((x>>8)&0xff)as u8);
+      ret.push((x&0xff)as u8);
+    },
+    itype::i64(x) => {
+      ret.push(((x>>56)&0xff)as u8);
+      ret.push(((x>>48)&0xff)as u8);
+      ret.push(((x>>40)&0xff)as u8);
+      ret.push(((x>>32)&0xff)as u8);
+      ret.push(((x>>24)&0xff)as u8);
+      ret.push(((x>>16)&0xff)as u8);
+      ret.push(((x>>8)&0xff)as u8);
+      ret.push((x&0xff)as u8);
+    },
+    itype::i128(x) => {
+      ret.push(((x>>120)&0xff)as u8);
+      ret.push(((x>>112)&0xff)as u8);
+      ret.push(((x>>104)&0xff)as u8);
+      ret.push(((x>>96)&0xff)as u8);
+      ret.push(((x>>88)&0xff)as u8);
+      ret.push(((x>>80)&0xff)as u8);
+      ret.push(((x>>72)&0xff)as u8);
+      ret.push(((x>>64)&0xff)as u8);
+      ret.push(((x>>56)&0xff)as u8);
+      ret.push(((x>>48)&0xff)as u8);
+      ret.push(((x>>40)&0xff)as u8);
+      ret.push(((x>>32)&0xff)as u8);
+      ret.push(((x>>24)&0xff)as u8);
+      ret.push(((x>>16)&0xff)as u8);
+      ret.push(((x>>8)&0xff)as u8);
+      ret.push((x&0xff)as u8);
+    },
+    itype::u8(x) => {
+      ret.push(x as u8);
+    },
+    itype::u16(x) => {
+      ret.push(((x>>8)&0xff)as u8);
+      ret.push((x&0xff)as u8);
+    },
+    itype::u32(x) => {
+      ret.push(((x>>24)&0xff)as u8);
+      ret.push(((x>>16)&0xff)as u8);
+      ret.push(((x>>8)&0xff)as u8);
+      ret.push((x&0xff)as u8);
+    },
+    itype::u64(x) => {
+      ret.push(((x>>56)&0xff)as u8);
+      ret.push(((x>>48)&0xff)as u8);
+      ret.push(((x>>40)&0xff)as u8);
+      ret.push(((x>>32)&0xff)as u8);
+      ret.push(((x>>24)&0xff)as u8);
+      ret.push(((x>>16)&0xff)as u8);
+      ret.push(((x>>8)&0xff)as u8);
+      ret.push((x&0xff)as u8);
+    },
+    itype::u128(x) => {
+      ret.push(((x>>120)&0xff)as u8);
+      ret.push(((x>>112)&0xff)as u8);
+      ret.push(((x>>104)&0xff)as u8);
+      ret.push(((x>>96)&0xff)as u8);
+      ret.push(((x>>88)&0xff)as u8);
+      ret.push(((x>>80)&0xff)as u8);
+      ret.push(((x>>72)&0xff)as u8);
+      ret.push(((x>>64)&0xff)as u8);
+      ret.push(((x>>56)&0xff)as u8);
+      ret.push(((x>>48)&0xff)as u8);
+      ret.push(((x>>40)&0xff)as u8);
+      ret.push(((x>>32)&0xff)as u8);
+      ret.push(((x>>24)&0xff)as u8);
+      ret.push(((x>>16)&0xff)as u8);
+      ret.push(((x>>8)&0xff)as u8);
+      ret.push((x&0xff)as u8);
+    },
+    _ => ret.push(0),
   }
-}*/
+  ret
+}
+fn octetslice_to_string(s: &[Octect]) -> String {
+  
+}
+impl Serialization for MissingCrlIdentifier {
+  fn Serialize(&self) -> String  {
+    let mut ret=String::new();
+    let mut s = vec![];
+    s.extend_from_slice(&self.cracaId);
+    ret.push_str(&hex::encode(s));
+    ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(self.crlSeries))));
+    ret
+  }
+}
+impl Serialization for HeaderInfo {
+  fn Serialize(&self) -> String {
+    let mut ret = String::new();
+    let String_Psid    = convert_to_u8vec(itype::u64(self.psid));
+    let mut String_Options = String::new(); 
+    let OptionDataIndicator: u8 =0;
+    
+    match self.generationTime {
+      Some(x) => {
+        OptionDataIndicator= OptionDataIndicator|0x01;
+        String_Options.push_str(&convert_to_u8vec(itype::u64(x)));
+      },
+      None => {
+        OptionDataIndicator = OptionDataIndicator&0xFE;
+      },
+    }
+
+    match self.expiryTime {
+      Some(x) => {
+        OptionDataIndicator= OptionDataIndicator|0x02;
+        String_Options.push_str(&convert_to_u8vec(itype::u64(x)));
+      },
+      None => {
+        OptionDataIndicator = OptionDataIndicator&0xFD;
+      },
+    }
+
+    match self.generationLocation {
+      Some(x) {
+        OptionDataIndicator = OptionDataIndicator|0x04;
+        String_Options.push_str(&convert_to_u8vec(itype::i64(x[0])));
+        String_Options.push_str(&convert_to_u8vec(itype::i64(x[1])));
+        String_Options.push_str(&convert_to_u8vec(itype::i64(x[2])));
+      },
+      None => {
+        OptionDataIndicator = OptionDataIndicator&0xFB;
+      },
+    }
+    match self.p2pcdLearningRequest {
+      Some(x) => {
+        OptionDataIndicator = OptionDataIndicator|0x08;
+        String_Options.push_str(hex::encode
+      },
+      None => {
+
+      },
+    }
+  }
+}
