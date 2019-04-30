@@ -612,6 +612,34 @@ fn octetslice_to_string(s: &[Octet]) -> String {
   ret.push_str(&hex::encode(vt));
   ret
 }
+impl Serialization for EcdsaP256Signature {
+  fn Serialize(&self) -> String {
+    let mut ret = String::new();
+    match self.r {
+      EccP256CurvePoint::xOnly(x) => {
+        ret.push_str("00");  
+        ret.push_str(&octetslice_to_string(&x));
+      },
+      EccP256CurvePoint::fill() => {
+        ret.push_str("01");  
+      },
+      EccP256CurvePoint::compressed_Y_0(x) => {
+        ret.push_str("02");
+        ret.push_str(&octetslice_to_string(&x));
+      },
+      EccP256CurvePoint::compressed_Y_1(x) => {
+        ret.push_str("03");  
+        ret.push_str(&octetslice_to_string(&x));
+      },
+      EccP256CurvePoint::uncompressed(x,y) => {
+        ret.push_str("04");
+        ret.push_str(&octetslice_to_string(&x));
+        ret.push_str(&octetslice_to_string(&y));
+      },
+    }
+    ret
+  }
+}
 impl Serialization for MissingCrlIdentifier {
   fn Serialize(&self) -> String  {
     let mut ret=String::new();
@@ -619,6 +647,29 @@ impl Serialization for MissingCrlIdentifier {
     s.extend_from_slice(&self.cracaId);
     ret.push_str(&hex::encode(s));
     ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(self.crlSeries))));
+    ret
+  }
+}
+impl Serialization for ToBeSignedData {
+  fn Serialize(&self) -> String {
+    let mut ret = String::new();
+    ret.push_str(&self.payload.Serialize());
+    ret.push_str(&self.header_info.Serialize());
+    ret
+  }
+}
+impl Serialization for SignedDataPayload {
+  fn Serialize(&self) -> String {
+    let mut ret = String::new();
+    ret.push_str(&self.data.Serialize());
+    ret.push_str(&self.extDataHash.Serialize());
+    ret
+  }
+}
+impl Serialization for HashedData {
+  fn Serialize(&self) -> String {
+    let mut ret = String::new();
+    ret.push_str(&octetslice_to_string(&self.sha256HashedData));
     ret
   }
 }
