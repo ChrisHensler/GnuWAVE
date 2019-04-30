@@ -602,8 +602,15 @@ fn convert_to_u8vec(variable: itype) -> Vec<u8>
   }
   ret
 }
-fn octetslice_to_string(s: &[Octect]) -> String {
-  
+fn octetslice_to_string(s: &[Octet]) -> String {
+  let mut ret = String::new();
+  let mut vt: Vec<u8> = Vec::new();
+  for i in (0..s.len())
+  {
+    vt.append(&mut convert_to_u8vec(itype::u8(s[i] as u8)));
+  }
+  ret.push_str(&hex::encode(vt));
+  ret
 }
 impl Serialization for MissingCrlIdentifier {
   fn Serialize(&self) -> String  {
@@ -612,6 +619,14 @@ impl Serialization for MissingCrlIdentifier {
     s.extend_from_slice(&self.cracaId);
     ret.push_str(&hex::encode(s));
     ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(self.crlSeries))));
+    ret
+  }
+}
+impl Serialization for Ieee1609Dot2DataRaw {
+  fn Serialize(&self) -> String {
+    let mut ret = String::new();
+    ret.push_str(&hex::encode(convert_to_u8vec(itype::u8(self.protocol_version))));
+    ret.push_str(&hex::encode(&self.content));
     ret
   }
 }
@@ -625,7 +640,7 @@ impl Serialization for HeaderInfo {
     match self.generationTime {
       Some(x) => {
         OptionDataIndicator= OptionDataIndicator|0x01;
-        String_Options.push_str(&convert_to_u8vec(itype::u64(x)));
+        String_Options.push_str(&hex::encode(convert_to_u8vec(itype::u64(x))));
       },
       None => {
         OptionDataIndicator = OptionDataIndicator&0xFE;
@@ -635,7 +650,7 @@ impl Serialization for HeaderInfo {
     match self.expiryTime {
       Some(x) => {
         OptionDataIndicator= OptionDataIndicator|0x02;
-        String_Options.push_str(&convert_to_u8vec(itype::u64(x)));
+        String_Options.push_str(&hex::encode(convert_to_u8vec(itype::u64(x))));
       },
       None => {
         OptionDataIndicator = OptionDataIndicator&0xFD;
@@ -643,11 +658,11 @@ impl Serialization for HeaderInfo {
     }
 
     match self.generationLocation {
-      Some(x) {
+      Some(x) => {
         OptionDataIndicator = OptionDataIndicator|0x04;
-        String_Options.push_str(&convert_to_u8vec(itype::i64(x[0])));
-        String_Options.push_str(&convert_to_u8vec(itype::i64(x[1])));
-        String_Options.push_str(&convert_to_u8vec(itype::i64(x[2])));
+        String_Options.push_str(&hex::encode(convert_to_u8vec(itype::i64(x[0]))));
+        String_Options.push_str(&hex::encode(convert_to_u8vec(itype::i64(x[1]))));
+        String_Options.push_str(&hex::encode(convert_to_u8vec(itype::i64(x[2]))));
       },
       None => {
         OptionDataIndicator = OptionDataIndicator&0xFB;
@@ -656,11 +671,33 @@ impl Serialization for HeaderInfo {
     match self.p2pcdLearningRequest {
       Some(x) => {
         OptionDataIndicator = OptionDataIndicator|0x08;
-        String_Options.push_str(hex::encode
+        String_Options.push_str(&octetslice_to_string(&x));
       },
       None => {
-
+        OptionDataIndicator = OptionDataIndicator&0xF7;
       },
     }
+    match self.missingCrlIdentifier {
+      Some(x) => {
+        OptionDataIndicator = OptionDataIndicator|0x10;
+        String_Options.push_str(&(x.Serialize()));
+      },
+      None => {
+        OptionDataIndicator = OptionDataIndicator&0xEF;
+      },
+    }
+    match self.encryptionKey{
+      Some(x) => {
+        OptionDataIndicator = OptionDataIndicator|0xBF;
+        String_Options.push_str(&hex::encode(convert_to_u8vec(itype::u8(x))));
+      },
+      None => {
+        OptionDataIndicator = OptionDataIndicator&0xDF;
+      },
+    }
+    ret.push_str(&hex::encode(String_Psid));
+    ret.push_str(&hex::encode(convert_to_u8vec(itype::u8(OptionDataIndicator))));
+    ret.push_str(&String_Options);
+    ret
   }
 }
