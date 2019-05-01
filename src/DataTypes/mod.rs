@@ -686,7 +686,7 @@ impl Serialization for HeaderInfo {
     let mut ret = String::new();
     let String_Psid    = convert_to_u8vec(itype::u64(self.psid));
     let mut String_Options = String::new(); 
-    let OptionDataIndicator: u8 =0;
+    let mut OptionDataIndicator: u8 =0;
     
     match self.generationTime {
       Some(x) => {

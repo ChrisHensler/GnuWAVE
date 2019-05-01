@@ -60,7 +60,7 @@ impl TraitSecureDataService for SecureDataService {
           content: data
         },
         extDataHash: HashedData {
-          sha256HashedData: ['a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a']
+          sha256HashedData: [0; 32]
         }
       },
       header_info: HeaderInfo {
@@ -80,7 +80,7 @@ impl TraitSecureDataService for SecureDataService {
       signer: SignerIdentifier::self_signed(true),
       signature: Signature::ecdsaNistP256Signature(EcdsaP256Signature {
           r: EccP256CurvePoint::fill(),
-          s: ['a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a','a'],
+          s: [0; 32],
         })
     });
 
