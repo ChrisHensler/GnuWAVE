@@ -728,7 +728,7 @@ impl Serialization for HeaderInfo {
         OptionDataIndicator = OptionDataIndicator&0xF7;
       },
     }
-    match self.missingCrlIdentifier {
+    match &self.missingCrlIdentifier {
       Some(x) => {
         OptionDataIndicator = OptionDataIndicator|0x10;
         String_Options.push_str(&(x.Serialize()));
