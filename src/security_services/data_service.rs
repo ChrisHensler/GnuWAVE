@@ -77,7 +77,7 @@ impl TraitSecureDataService for SecureDataService {
     let content = Ieee1609Dot2Content::Signed(SignedData  {
       hash_id: HashAlgo::sha256,
       tbs_data: to_be_signed,
-      signer: SignerIdentifier::self_signed(true),
+      signer: SignerIdentifier::self_signed(),
       signature: Signature::ecdsaNistP256Signature(EcdsaP256Signature {
           r: EccP256CurvePoint::fill(),
           s: [0; 32],

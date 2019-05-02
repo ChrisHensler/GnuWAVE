@@ -305,7 +305,7 @@ pub enum Signature {
 pub enum SignerIdentifier {
   Certificate(String),
   digest([Octet;8]),
-  self_signed(bool),
+  self_signed(),
 }
 pub struct MissingCrlIdentifier {
   pub cracaId: HashedId3,
@@ -612,9 +612,60 @@ fn octetslice_to_string(s: &[Octet]) -> String {
   ret.push_str(&hex::encode(vt));
   ret
 }
+impl Serialization for Ieee1609Dot2Data {
+  fn Serialize(&self) -> String {
+    let mut ret = String::new();
+    ret.push_str(&hex::encode(convert_to_u8vec(itype::u8(self.protocol_version))));
+    match &self.content {
+      Ieee1609Dot2Content::Unsecured(x) => {
+        ret.push_str("00");
+        ret.push_str(&hex::encode(&x));
+      },
+      Ieee1609Dot2Content::Signed(x) => {
+        ret.push_str("01");
+        ret.push_str(&x.Serialize());
+      },
+      Ieee1609Dot2Content::Encrypted(x) => {
+        ret.push_str("02");
+      },
+      Ieee1609Dot2Content::SignedCert(x) => {
+        ret.push_str("03");
+        ret.push_str(&hex::encode(&x));
+      },
+    }
+    ret
+  }
+}
 impl Serialization for SignedData {
   fn Serialize(&self) -> String {
     let mut ret = String::new();
+    //Hash Algo
+    ret.push_str("01");
+    ret.push_str(&self.tbs_data.Serialize());
+    match &self.signer {
+      SignerIdentifier::Certificate(x) => {
+        ret.push_str("00");
+        ret.push_str(&x);
+      },
+      SignerIdentifier::digest(x) => {
+        
+        ret.push_str("01");
+        ret.push_str(&octetslice_to_string(x));
+      },
+      SignerIdentifier::self_signed() => {
+        ret.push_str("02");
+      },
+    }
+    match &self.signature {
+      Signature::ecdsaNistP256Signature(x) => {
+        ret.push_str("00");
+        ret.push_str(&x.Serialize());
+      },
+      Signature::ecdsaBrainpoolP256r1Signature(x) => {
+        ret.push_str("01");
+        ret.push_str(&x.Serialize());
+      },
+    }
     ret
   }
 }
