@@ -612,6 +612,12 @@ fn octetslice_to_string(s: &[Octet]) -> String {
   ret.push_str(&hex::encode(vt));
   ret
 }
+impl Serialization for SignedData {
+  fn Serialize(&self) -> String {
+    let mut ret = String::new();
+    ret
+  }
+}
 impl Serialization for EcdsaP256Signature {
   fn Serialize(&self) -> String {
     let mut ret = String::new();
@@ -637,6 +643,7 @@ impl Serialization for EcdsaP256Signature {
         ret.push_str(&octetslice_to_string(&y));
       },
     }
+    ret.push_str(&octetslice_to_string(&self.s));
     ret
   }
 }
