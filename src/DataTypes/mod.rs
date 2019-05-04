@@ -515,6 +515,19 @@ pub enum itype {
   f32(f32),
   f64(f64)
 }
+pub fn remove_spaces(serial: &str) -> String
+{
+  let mut count =0;
+  let mut ret = String::with_capacity(serial.len());
+  for i in (0..serial.len())
+  {
+    if (&serial[i..i+1]!=" ")
+    {
+      ret.push_str(&serial[i..i+1]);
+    }
+  }
+  ret
+}
 pub fn u8_vec_to_u16(bytes: &[u8]) -> u16 {
   let mut ret: u16 =0;
   if (bytes.len()<2){
@@ -557,7 +570,7 @@ pub fn hexstring_to_bytevec(s: &str) -> Vec<u8> {
   let mut count =0;
   let mut resforpush: u8=0;
   for i in (0..s.len()) {
-    let index=s.len()-i-1;
+    let index=i;//s.len()-i-1;
     if (count==0){
       count=1;
       if (temp[index] < 0x3A && temp[index]>=0x30)
@@ -952,25 +965,41 @@ impl Serialization for HeaderInfo {
 impl Deserialization for HeaderInfo {
   fn Deserialize(&mut self, serial: &str)
   {
-    let temp = hexstring_to_bytevec(&serial[0..9]);
+    //Written under the assumption that all whitespaces have been removed from the hexstring
+    let temp = hexstring_to_bytevec(&serial);
     self.psid = u8_vec_to_u64(&temp);
     let options = temp[8];
-    let mut data=hexstring_to_bytevec(&serial[9..]);
+    let mut data=temp[9..].to_vec();
+    let mut bytecount=9;
     if (options & 0x01 == 0x01)
     {
-      self.generationTime = Some(u8_vec_to_u64(&data[0..8]));
+      if (data.len()>=8)
+      {
+        self.generationTime = Some(u8_vec_to_u64(&data[0..8]));
+        bytecount= bytecount+8;
+      }
       if (data.len()>8) {
         data=data[8..].to_vec();
       }
     }
+    else {
+      self.generationTime=None;
+    }
+
     if (options & 0x02 == 0x02)
     {
-      self.expiryTime = Some(u8_vec_to_u64(&data[0..8]));
-      data=data[8..].to_vec();
+      if (data.len()>=8) {
+        self.expiryTime = Some(u8_vec_to_u64(&data[0..8]));
+        bytecount=bytecount+8;
+      }
       if (data.len()>8) {
         data=data[8..].to_vec();
       }
     }
+    else {
+      self.expiryTime=None;
+    }
+
     if (options & 0x04 == 0x04) 
     {
       let mut s: [i64;3]=[0,0,0];
@@ -978,11 +1007,16 @@ impl Deserialization for HeaderInfo {
       s[0]=u8_vec_to_u64(&data[0..8]) as i64;
       s[1]=u8_vec_to_u64(&data[8..16]) as i64;
       s[2]=u8_vec_to_u64(&data[16..24]) as i64;
+      bytecount= bytecount+24;
       }
       self.generationLocation = Some(s);
       if (data.len()>24) {
         data=data[24..].to_vec();
       }
+    }
+
+    else {
+      self.generationLocation=None;
     }
     if (options &0x08 == 0x08)
     {
@@ -998,18 +1032,39 @@ impl Deserialization for HeaderInfo {
         data=data[3..].to_vec();
       }
     }
+    else {
+      self.p2pcdLearningRequest=None;
+    }
+
     if (options & 0x10 == 0x10) 
     {
       if (data.len()>=5)
       {
-        //MUST REWRITE THIS TO ACTUALLY WORK WITH SERIAL INSTEAD OF DATA
         let mut s = MissingCrlIdentifier {cracaId:[0,0,0],crlSeries:0,};
-        s.Deserialize(&serial);
+        s.Deserialize(&serial[bytecount*2..(bytecount+5)*2]);
+        self.missingCrlIdentifier=Some(s);
+        bytecount=bytecount+5;
+      }
+      if (data.len()>5)
+      {
+        data=data[5..].to_vec();
       }
     }
+    else {
+      self.missingCrlIdentifier=None;
+    }
+
     if (options & 0x20 == 0x20)
     {
-
+      if (data.len()>=1)
+      {
+        self.encryptionKey=Some(data[0]);
+        bytecount= bytecount+1;
+      }
     }
+    else {
+      self.encryptionKey=None;
+    }
+
   }
 }
