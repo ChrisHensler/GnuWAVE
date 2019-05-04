@@ -58,6 +58,9 @@ type SequenceOfPsidSsp              = Vec<PsidSsp>;
 pub trait Serialization {
   fn Serialize(&self) -> String;
 }
+pub trait Deserialization {
+  fn Deserialize(&mut self, serial: &str);
+}
 pub enum ResultCode_SecSignedData {
   Success,
   IncorrectInput,
@@ -512,6 +515,107 @@ pub enum itype {
   f32(f32),
   f64(f64)
 }
+pub fn u8_vec_to_u16(bytes: &[u8]) -> u16 {
+  let mut ret: u16 =0;
+  if (bytes.len()<2){
+    return ret
+  }
+  ret = bytes[0] as u16;
+  ret = (ret<<8) | bytes[1] as u16;
+  ret
+}
+pub fn u8_vec_to_u64(bytes: &[u8]) -> u64 {
+  let mut ret: u64 =0;
+  if (bytes.len()<8){
+    return ret
+  }
+  ret = bytes[0] as u64;
+  ret = (ret<<8) | bytes[1] as u64;
+  ret = (ret<<8) | bytes[2] as u64;
+  ret = (ret<<8) | bytes[3] as u64;
+  ret = (ret<<8) | bytes[4] as u64;
+  ret = (ret<<8) | bytes[5] as u64;
+  ret = (ret<<8) | bytes[6] as u64;
+  ret = (ret<<8) | bytes[7] as u64;
+  ret
+}
+pub fn u8_vec_to_u32(bytes: &[u8]) -> u32 {
+  let mut ret: u32 =0;
+  if (bytes.len()<4){
+    return ret
+  }
+  ret = bytes[0] as u32;
+  ret = (ret<<8) | bytes[1] as u32;
+  ret = (ret<<8) | bytes[2] as u32;
+  ret = (ret<<8) | bytes[3] as u32;
+  ret
+}
+pub fn hexstring_to_bytevec(s: &str) -> Vec<u8> {
+  let mut ret: Vec<u8> = Vec::new();
+  let tp = s.to_lowercase();
+  let temp = tp.as_bytes();
+  let mut count =0;
+  let mut resforpush: u8=0;
+  for i in (0..s.len()) {
+    let index=s.len()-i-1;
+    if (count==0){
+      count=1;
+      if (temp[index] < 0x3A && temp[index]>=0x30)
+      {
+        resforpush = (temp[index]&0x0f)<<4;
+      }
+      else if (temp[index]==0x61) {
+        resforpush = 0xa0;
+      }
+      else if (temp[index]==0x62) {
+        resforpush = 0xb0;
+        }
+      else if (temp[index]==0x63) {
+        resforpush = 0xc0;
+        }
+      else if (temp[index]==0x64) {
+        resforpush = 0xd0;
+        }
+      else if (temp[index]==0x65) {
+        resforpush = 0xe0;
+        }
+      else if (temp[index]==0x66){
+        resforpush = 0xf0;
+      }
+      else {
+        count=1;
+      }
+    }
+    else
+    {
+      count=0;
+      if (temp[index] < 0x3A && temp[index]>=0x30)
+      {
+        resforpush = resforpush|((temp[index]&0x0f));
+      }
+      else if (temp[index]==0x61){
+        resforpush = resforpush |0xa;}
+      else if (temp[index]==0x62){
+        resforpush = resforpush |0xb;}
+      else if (temp[index]==0x63){
+        resforpush = resforpush |0xc;}
+      else if (temp[index]==0x64){
+        resforpush = resforpush |0xd;}
+      else if (temp[index]==0x65){
+        resforpush = resforpush |0xe;}
+      else if (temp[index]==0x66){
+        resforpush = resforpush |0xf;}
+      else {
+        count=1;
+      }
+      if (count==0) {
+        ret.push(resforpush);
+      }
+    }
+  }
+  ret
+}
+
 fn convert_to_u8vec(variable: itype) -> Vec<u8>
 {
   let mut ret: Vec<u8> = Vec::new();
@@ -708,6 +812,15 @@ impl Serialization for MissingCrlIdentifier {
     ret
   }
 }
+impl Deserialization for MissingCrlIdentifier {
+  fn Deserialize(&mut self, serial: &str) {
+    let s = hexstring_to_bytevec(&serial);
+    self.cracaId[0]=s[0];
+    self.cracaId[1]=s[1];
+    self.cracaId[2]=s[2];
+    self.crlSeries=u8_vec_to_u16(&s[3..5]);
+  }
+}
 impl Serialization for ToBeSignedData {
   fn Serialize(&self) -> String {
     let mut ret = String::new();
@@ -724,11 +837,26 @@ impl Serialization for SignedDataPayload {
     ret
   }
 }
+impl Deserialization for SignedDataPayload {
+  fn Deserialize(&mut self, serial: &str) {
+    self.data.Deserialize(&serial[0..serial.len()-32]);
+    self.extDataHash.Deserialize(&serial[serial.len()-32..serial.len()]);
+  }
+}
 impl Serialization for HashedData {
   fn Serialize(&self) -> String {
     let mut ret = String::new();
     ret.push_str(&octetslice_to_string(&self.sha256HashedData));
     ret
+  }
+}
+impl Deserialization for HashedData {
+  fn Deserialize(&mut self, serial: &str) {
+    let s = hexstring_to_bytevec(&serial);
+    for i in (0..s.len())
+    {
+      self.sha256HashedData[i]=s[i];
+    }
   }
 }
 impl Serialization for Ieee1609Dot2DataRaw {
@@ -737,6 +865,17 @@ impl Serialization for Ieee1609Dot2DataRaw {
     ret.push_str(&hex::encode(convert_to_u8vec(itype::u8(self.protocol_version))));
     ret.push_str(&hex::encode(&self.content));
     ret
+  }
+}
+impl Deserialization for Ieee1609Dot2DataRaw {
+  fn Deserialize(&mut self, serial: &str) {
+    let s = hexstring_to_bytevec(&serial);
+    self.protocol_version=s[0];
+    let mut string = String::with_capacity(serial.len()-1);
+    for i in (1..serial.len()) {
+      string.insert(i, s[i] as char);
+    }
+    self.content = string;
   }
 }
 impl Serialization for HeaderInfo {
@@ -797,7 +936,7 @@ impl Serialization for HeaderInfo {
     }
     match self.encryptionKey{
       Some(x) => {
-        OptionDataIndicator = OptionDataIndicator|0xBF;
+        OptionDataIndicator = OptionDataIndicator|0x20;
         String_Options.push_str(&hex::encode(convert_to_u8vec(itype::u8(x))));
       },
       None => {
@@ -808,5 +947,69 @@ impl Serialization for HeaderInfo {
     ret.push_str(&hex::encode(convert_to_u8vec(itype::u8(OptionDataIndicator))));
     ret.push_str(&String_Options);
     ret
+  }
+}
+impl Deserialization for HeaderInfo {
+  fn Deserialize(&mut self, serial: &str)
+  {
+    let temp = hexstring_to_bytevec(&serial[0..9]);
+    self.psid = u8_vec_to_u64(&temp);
+    let options = temp[8];
+    let mut data=hexstring_to_bytevec(&serial[9..]);
+    if (options & 0x01 == 0x01)
+    {
+      self.generationTime = Some(u8_vec_to_u64(&data[0..8]));
+      if (data.len()>8) {
+        data=data[8..].to_vec();
+      }
+    }
+    if (options & 0x02 == 0x02)
+    {
+      self.expiryTime = Some(u8_vec_to_u64(&data[0..8]));
+      data=data[8..].to_vec();
+      if (data.len()>8) {
+        data=data[8..].to_vec();
+      }
+    }
+    if (options & 0x04 == 0x04) 
+    {
+      let mut s: [i64;3]=[0,0,0];
+      if (data.len()>=24) {
+      s[0]=u8_vec_to_u64(&data[0..8]) as i64;
+      s[1]=u8_vec_to_u64(&data[8..16]) as i64;
+      s[2]=u8_vec_to_u64(&data[16..24]) as i64;
+      }
+      self.generationLocation = Some(s);
+      if (data.len()>24) {
+        data=data[24..].to_vec();
+      }
+    }
+    if (options &0x08 == 0x08)
+    {
+      let mut s:HashedId3 = [0,0,0];
+      if (data.len()>=3) {
+        s[0]=data[0] as Octet;
+        s[1]=data[1] as Octet;
+        s[2]=data[2] as Octet;
+        self.p2pcdLearningRequest=Some(s);
+      }
+      if (data.len()>3)
+      {
+        data=data[3..].to_vec();
+      }
+    }
+    if (options & 0x10 == 0x10) 
+    {
+      if (data.len()>=5)
+      {
+        //MUST REWRITE THIS TO ACTUALLY WORK WITH SERIAL INSTEAD OF DATA
+        let mut s = MissingCrlIdentifier {cracaId:[0,0,0],crlSeries:0,};
+        s.Deserialize(&serial);
+      }
+    }
+    if (options & 0x20 == 0x20)
+    {
+
+    }
   }
 }
