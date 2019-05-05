@@ -736,6 +736,7 @@ impl Serialization for Ieee1609Dot2Data {
     match &self.content {
       Ieee1609Dot2Content::Unsecured(x) => {
         ret.push_str("00");
+        ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(x.len() as u16))));
         ret.push_str(&hex::encode(&x));
       },
       Ieee1609Dot2Content::Signed(x) => {
@@ -747,6 +748,7 @@ impl Serialization for Ieee1609Dot2Data {
       },
       Ieee1609Dot2Content::SignedCert(x) => {
         ret.push_str("03");
+        ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(x.len() as u16))));
         ret.push_str(&hex::encode(&x));
       },
     }
@@ -815,6 +817,65 @@ impl Serialization for EcdsaP256Signature {
     ret
   }
 }
+impl Deserialization for EcdsaP256Signature {
+  fn Deserialize(&mut self, serial: &str)
+  {
+    let mut data = hexstring_to_bytevec(&serial);
+    let option = data[0];
+    if (option==0) {
+      let mut temp: [Octet;32]=[0 as Octet;32];
+      for i in (0..32) {
+        temp[i]=data[i+1];
+      }
+      self.r=EccP256CurvePoint::xOnly(temp);
+      data=data[33..].to_vec();
+    }
+    else if (option == 1) {
+      self.r=EccP256CurvePoint::fill();
+    }
+    else if (option == 2) {
+      let mut temp: [Octet;32]=[0 as Octet;32];
+      for i in (0..32) {
+        temp[i]=data[i+1];
+      }
+      self.r=EccP256CurvePoint::compressed_Y_0(temp);
+      data=data[33..].to_vec();
+
+    }
+    else if (option == 3) {
+      let mut temp: [Octet;32]=[0 as Octet;32];
+      for i in (0..32) {
+        temp[i]=data[i+1];
+      }
+      self.r=EccP256CurvePoint::compressed_Y_1(temp);
+      data=data[33..].to_vec();
+
+    }
+    else if (option == 4) {
+      let mut temp: [Octet;32]=[0 as Octet;32];
+      let mut temp2: [Octet;32]=[0 as Octet;32];
+      for i in (0..32) {
+        temp[i]=data[i+1];
+      }
+      data=data[33..].to_vec();
+      for i in (0..32) {
+        temp2[i]=data[i];
+      }
+      self.r=EccP256CurvePoint::uncompressed(temp,temp2);
+      data=data[32..].to_vec();
+    }
+    else
+    {
+      data=data[1..].to_vec();
+    }
+    let mut temp: [Octet;32] = [0 as Octet;32];
+    for i in (0..32)
+    {
+      temp[i]=data[i];
+    }
+    self.s = temp;
+  }
+}
 impl Serialization for MissingCrlIdentifier {
   fn Serialize(&self) -> String  {
     let mut ret=String::new();
@@ -834,12 +895,25 @@ impl Deserialization for MissingCrlIdentifier {
     self.crlSeries=u8_vec_to_u16(&s[3..5]);
   }
 }
+//MAY NEED TO INCLUDE SIZE OF PAYLOAD IN DATA STRUCT
 impl Serialization for ToBeSignedData {
   fn Serialize(&self) -> String {
     let mut ret = String::new();
+    let temp = self.payload.Serialize();
+    let size: u16 = temp.len() as u16;
+    ret.push_str(&hex::encode(&convert_to_u8vec(itype::u16(size))));
     ret.push_str(&self.payload.Serialize());
     ret.push_str(&self.header_info.Serialize());
     ret
+  }
+}
+impl Deserialization for ToBeSignedData {
+  fn Deserialize(&mut self, serial: &str)
+  {
+    let data = hexstring_to_bytevec(&serial[0..4]);
+    let payload_size= u8_vec_to_u16(&data[0..2]) as usize;
+    self.payload.Deserialize(&serial[2..(payload_size*2)]);
+    self.header_info.Deserialize(&serial[(payload_size*2)..]);
   }
 }
 impl Serialization for SignedDataPayload {
@@ -852,8 +926,8 @@ impl Serialization for SignedDataPayload {
 }
 impl Deserialization for SignedDataPayload {
   fn Deserialize(&mut self, serial: &str) {
-    self.data.Deserialize(&serial[0..serial.len()-32]);
-    self.extDataHash.Deserialize(&serial[serial.len()-32..serial.len()]);
+    self.data.Deserialize(&serial[0..(serial.len()-32)*2]);
+    self.extDataHash.Deserialize(&serial[(serial.len()-32)*2..]);
   }
 }
 impl Serialization for HashedData {
@@ -1065,6 +1139,5 @@ impl Deserialization for HeaderInfo {
     else {
       self.encryptionKey=None;
     }
-
   }
 }
