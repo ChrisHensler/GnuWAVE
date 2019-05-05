@@ -760,14 +760,18 @@ impl Serialization for SignedData {
     let mut ret = String::new();
     //Hash Algo
     ret.push_str("01");
-    ret.push_str(&self.tbs_data.Serialize());
+    //tbs data
+    let temp = self.tbs_data.Serialize();
+    //len/2 since the number of bytes is half the number of chars
+    ret.push_str(&hex::encode(&convert_to_u8vec(itype::u16((temp.len()/2) as u16))));
+    ret.push_str(&temp);
     match &self.signer {
       SignerIdentifier::Certificate(x) => {
         ret.push_str("00");
+        ret.push_str(&hex::encode(&convert_to_u8vec(itype::u16((x.len()/2) as u16))));
         ret.push_str(&x);
       },
-      SignerIdentifier::digest(x) => {
-        
+      SignerIdentifier::digest(x) => {        
         ret.push_str("01");
         ret.push_str(&octetslice_to_string(x));
       },
@@ -786,6 +790,69 @@ impl Serialization for SignedData {
       },
     }
     ret
+  }
+}
+impl Deserialization for SignedData {
+  fn Deserialize(&mut self, serial: &str)
+  {
+    let mut data=hexstring_to_bytevec(&serial);
+    let mut bytecount=0;
+    if (data[0] == 1)
+    {
+      self.hash_id=HashAlgo::sha256;
+      bytecount=1;
+    }
+    let tbs_size = u8_vec_to_u16(&data[bytecount..bytecount+2]) as usize;
+    bytecount= bytecount+2;
+    self.tbs_data.Deserialize(&serial[bytecount*2..(bytecount+tbs_size)*2]);
+    bytecount= bytecount+tbs_size;
+    data=hexstring_to_bytevec(&serial[bytecount*2..]);
+    let signid= data[0];
+    bytecount = bytecount+1;
+    if (signid==0) {
+      let certsize= u8_vec_to_u16(&data[1..3]) as usize;
+      bytecount=bytecount+2;
+      data=data[3..].to_vec();
+      let mut temp = String::with_capacity(certsize);
+      for i in (0..certsize)
+      {
+        temp.insert(i, data[i] as char);
+      }
+      self.signer = SignerIdentifier::Certificate(temp);
+      bytecount = bytecount+certsize;
+      data=data[certsize..].to_vec();
+    }
+    else if (signid ==1)
+    {
+      let mut dig: [Octet;8] = [0 as Octet;8];
+      for i in (0..8)
+      {
+        dig[i] = data[i+1];
+      }
+      bytecount=bytecount+8;
+      self.signer = SignerIdentifier::digest(dig);
+      data=data[9..].to_vec();
+    }
+    else if (signid==3)
+    {
+      self.signer=SignerIdentifier::self_signed();
+      data=data[1..].to_vec();
+    }
+    let sigtype = data[0];
+    bytecount=bytecount+1;
+    let mut temp = EcdsaP256Signature{
+      r: EccP256CurvePoint::fill(),
+      s: [0 as Octet;32],
+    };
+    temp.Deserialize(&serial[bytecount*2..]);
+    if (sigtype == 0)
+    {
+      self.signature=Signature::ecdsaNistP256Signature(temp);
+    }
+    else if (sigtype ==1)
+    {
+      self.signature=Signature::ecdsaBrainpoolP256r1Signature(temp);
+    }
   }
 }
 impl Serialization for EcdsaP256Signature {
