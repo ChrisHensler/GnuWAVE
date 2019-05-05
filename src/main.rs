@@ -40,7 +40,20 @@ fn convert_to_spdu(sds: &security_services::data_service::SecureDataService)  {
 }
 
 fn main() {
-  let (sds,ssme) = security_services::initialize();
+  let mut temp  = DataTypes::generic_ieeedata(DataType::Signed);
+  if let Ieee1609Dot2Content::Signed(mut x) = temp.content {
+    x.tbs_data.payload.data.content=String::from("no");
+    //Must have re-assignment to allow this statement to even exist
+    //If you remove temp.content=... then the compiler complains that
+    //the value was moved. So I force it to be moved back
+    temp.content=Ieee1609Dot2Content::Signed(x);
+  }
+  println!("{}", temp.Serialize());
+  let mut temp2 = DataTypes::generic_ieeedata(DataType::Signed);
+  temp2.Deserialize(&temp.Serialize());
+  println!("{}", temp2.Serialize());
+  println!("{}", temp2.Serialize() == temp.Serialize());
+  /*let (sds,ssme) = security_services::initialize();
   println!("Compiled ok {}", sds.get_string());
   let s= ResultCode_SecSignedDataVerification::SPDULocalConsistency(SPDULocalConsistency::PSIDsDontMatch);
   match s {
@@ -68,5 +81,5 @@ fn main() {
         }
         Err(error) => println!("error: {}", error),
     }
-  }
+  }*/
 }

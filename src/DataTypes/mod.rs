@@ -5,7 +5,6 @@
 //UPDATE: As of 4/23 all Location types should be defined, excluding the bounding ranges on lat,long and elevation. Those should be checked inside struct constrcutor or functional implementation
 extern crate hex;
 type TOBEIMPLEMENTED = u8;
-
 type Octet  = u8;
 //Defining Standards dumb redefines of things
 type Psid   = u64;
@@ -60,6 +59,9 @@ pub trait Serialization {
 }
 pub trait Deserialization {
   fn Deserialize(&mut self, serial: &str);
+}
+pub enum DataType {
+  Unsecured, Signed, Encrypted, SignedCert,
 }
 pub enum ResultCode_SecSignedData {
   Success,
@@ -759,11 +761,16 @@ impl Deserialization for Ieee1609Dot2Data {
   fn Deserialize(&mut self, serial: &str)
   {
     let mut data = hexstring_to_bytevec(&serial);
+    let mut bytecount =0;
+    self.protocol_version = data[0];
+    bytecount=bytecount+1;
+    data = data[1..].to_vec();
+    bytecount=bytecount+1;
     if (data[0]==0) {
       let mut temp = String::with_capacity(data.len());
-      for i in (1..data.len())
+      for i in (0..data.len()-1)
       {
-        temp.insert(1, data[i] as char);
+        temp.insert(i, data[i+1] as char);
       }
       self.content = Ieee1609Dot2Content::Unsecured(temp);
     }
@@ -800,7 +807,7 @@ impl Deserialization for Ieee1609Dot2Data {
           s: [0; 32],
         })
       };
-      temp.Deserialize(&serial[1..]);
+      temp.Deserialize(&serial[bytecount*2..]);
       self.content = Ieee1609Dot2Content::Signed(temp);
     }
     else if (data[0] ==2) {
@@ -808,9 +815,9 @@ impl Deserialization for Ieee1609Dot2Data {
     }
     else if (data[0] ==3) {
       let mut temp = String::with_capacity(data.len());
-      for i in (1..data.len())
+      for i in (0..data.len()-1)
       {
-        temp.insert(1, data[i] as char);
+        temp.insert(i, data[i+1] as char);
       }
       self.content = Ieee1609Dot2Content::SignedCert(temp);
     }
@@ -856,6 +863,8 @@ impl Serialization for SignedData {
 impl Deserialization for SignedData {
   fn Deserialize(&mut self, serial: &str)
   {
+    //println!("SignedData\n{}", serial);
+    //println!("{}", serial.len());
     let mut data=hexstring_to_bytevec(&serial);
     let mut bytecount=0;
     if (data[0] == 1)
@@ -865,6 +874,7 @@ impl Deserialization for SignedData {
     }
     let tbs_size = u8_vec_to_u16(&data[bytecount..bytecount+2]) as usize;
     bytecount= bytecount+2;
+    //println!("{} {} {}", tbs_size, bytecount, (bytecount+tbs_size)*2);
     self.tbs_data.Deserialize(&serial[bytecount*2..(bytecount+tbs_size)*2]);
     bytecount= bytecount+tbs_size;
     data=hexstring_to_bytevec(&serial[bytecount*2..]);
@@ -1028,7 +1038,7 @@ impl Serialization for ToBeSignedData {
   fn Serialize(&self) -> String {
     let mut ret = String::new();
     let temp = self.payload.Serialize();
-    let size: u16 = temp.len() as u16;
+    let size: u16 = (temp.len()/2) as u16;
     ret.push_str(&hex::encode(&convert_to_u8vec(itype::u16(size))));
     ret.push_str(&self.payload.Serialize());
     ret.push_str(&self.header_info.Serialize());
@@ -1038,10 +1048,16 @@ impl Serialization for ToBeSignedData {
 impl Deserialization for ToBeSignedData {
   fn Deserialize(&mut self, serial: &str)
   {
+    //println!("ToBeSigned\n{}", serial);
+    //println!("{}", serial.len());
+    let mut bytecount = 0;
     let data = hexstring_to_bytevec(&serial[0..4]);
     let payload_size= u8_vec_to_u16(&data[0..2]) as usize;
-    self.payload.Deserialize(&serial[2..(payload_size*2)]);
-    self.header_info.Deserialize(&serial[(payload_size*2)..]);
+    bytecount=bytecount+2;
+    //println!("{}", payload_size);
+    self.payload.Deserialize(&serial[bytecount*2..((payload_size+bytecount)*2)]);
+    bytecount=bytecount+payload_size;
+    self.header_info.Deserialize(&serial[(bytecount*2)..]);
   }
 }
 impl Serialization for SignedDataPayload {
@@ -1054,8 +1070,10 @@ impl Serialization for SignedDataPayload {
 }
 impl Deserialization for SignedDataPayload {
   fn Deserialize(&mut self, serial: &str) {
-    self.data.Deserialize(&serial[0..(serial.len()-32)*2]);
-    self.extDataHash.Deserialize(&serial[(serial.len()-32)*2..]);
+    //println!("SignedDataPayload\n{}", serial);
+    //println!("{} {}", serial.len(), serial.len()-64);
+    self.data.Deserialize(&serial[0..serial.len()-64]);
+    self.extDataHash.Deserialize(&serial[serial.len()-64..]);
   }
 }
 impl Serialization for HashedData {
@@ -1085,11 +1103,13 @@ impl Serialization for Ieee1609Dot2DataRaw {
 impl Deserialization for Ieee1609Dot2DataRaw {
   fn Deserialize(&mut self, serial: &str) {
     let s = hexstring_to_bytevec(&serial);
+    //println!("Ieee1609Dot2DataRaw\n{}\n {} {}", serial, serial.len(), s.len());
     self.protocol_version=s[0];
-    let mut string = String::with_capacity(serial.len()-1);
-    for i in (1..serial.len()) {
-      string.insert(i, s[i] as char);
+    let mut string = String::with_capacity(serial.len());
+    for i in (0..s.len()-1) {
+      string.insert(i, s[i+1] as char);
     }
+    //println!("Raw_string:{}", string);
     self.content = string;
   }
 }
@@ -1267,5 +1287,64 @@ impl Deserialization for HeaderInfo {
     else {
       self.encryptionKey=None;
     }
+  }
+}
+pub fn generic_ieeedata(dtype:DataType ) -> Ieee1609Dot2Data{
+  match dtype {
+    DataType::Signed => {
+      let to_be_signed = ToBeSignedData {
+        payload: SignedDataPayload  {
+          data: Ieee1609Dot2DataRaw  {
+            protocol_version: 0,
+            content: String::from("yas"),
+          },
+          extDataHash: HashedData {
+            sha256HashedData: [0; 32]
+          }
+        },
+        header_info: HeaderInfo {
+          psid: 0,
+          generationTime: None,
+          expiryTime: None,
+          generationLocation: None,
+          p2pcdLearningRequest: None,
+          missingCrlIdentifier: None,
+          encryptionKey: None
+        },
+      };
+
+      let content = Ieee1609Dot2Content::Signed(SignedData  {
+        hash_id: HashAlgo::sha256,
+        tbs_data: to_be_signed,
+        signer: SignerIdentifier::self_signed(),
+        signature: Signature::ecdsaNistP256Signature(EcdsaP256Signature {
+            r: EccP256CurvePoint::fill(),
+            s: [0; 32],
+          })
+      });
+
+      let spdu = Ieee1609Dot2Data {
+        protocol_version: 0,
+        content: content
+      };
+      spdu
+      },
+    DataType::Unsecured => {
+      let content = Ieee1609Dot2Content::Unsecured(String::from("WHAT"));
+      let spdu = Ieee1609Dot2Data {
+        protocol_version: 0,
+        content: content
+      };
+      spdu
+    },
+    _ => {
+      let content = Ieee1609Dot2Content::Unsecured(String::from(""));
+      let spdu = Ieee1609Dot2Data {
+        protocol_version: 0,
+        content: content
+      };
+      spdu
+    },
+
   }
 }
