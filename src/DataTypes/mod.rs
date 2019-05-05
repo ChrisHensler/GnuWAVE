@@ -736,7 +736,7 @@ impl Serialization for Ieee1609Dot2Data {
     match &self.content {
       Ieee1609Dot2Content::Unsecured(x) => {
         ret.push_str("00");
-        ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(x.len() as u16))));
+        //ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(x.len() as u16))));
         ret.push_str(&hex::encode(&x));
       },
       Ieee1609Dot2Content::Signed(x) => {
@@ -748,11 +748,72 @@ impl Serialization for Ieee1609Dot2Data {
       },
       Ieee1609Dot2Content::SignedCert(x) => {
         ret.push_str("03");
-        ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(x.len() as u16))));
+        //ret.push_str(&hex::encode(convert_to_u8vec(itype::u16(x.len() as u16))));
         ret.push_str(&hex::encode(&x));
       },
     }
     ret
+  }
+}
+impl Deserialization for Ieee1609Dot2Data {
+  fn Deserialize(&mut self, serial: &str)
+  {
+    let mut data = hexstring_to_bytevec(&serial);
+    if (data[0]==0) {
+      let mut temp = String::with_capacity(data.len());
+      for i in (1..data.len())
+      {
+        temp.insert(1, data[i] as char);
+      }
+      self.content = Ieee1609Dot2Content::Unsecured(temp);
+    }
+    else if (data[0] ==1) {
+      let mut temp= SignedData  {
+      hash_id: HashAlgo::sha256,
+      tbs_data:
+        ToBeSignedData {
+          payload: 
+            SignedDataPayload  {
+              data: 
+                Ieee1609Dot2DataRaw  {
+                  protocol_version: 0,
+                  content: String::new(),
+                },
+              extDataHash: HashedData {
+                sha256HashedData: [0; 32]
+              }
+            },
+          header_info:
+            HeaderInfo {
+              psid: 0,
+              generationTime: None,
+              expiryTime: None,
+              generationLocation: None,
+              p2pcdLearningRequest: None,
+              missingCrlIdentifier: None,
+              encryptionKey: None
+            },
+          },
+      signer: SignerIdentifier::self_signed(),
+      signature: Signature::ecdsaNistP256Signature(EcdsaP256Signature {
+          r: EccP256CurvePoint::fill(),
+          s: [0; 32],
+        })
+      };
+      temp.Deserialize(&serial[1..]);
+      self.content = Ieee1609Dot2Content::Signed(temp);
+    }
+    else if (data[0] ==2) {
+      //TO BE IMPLEMENTED;
+    }
+    else if (data[0] ==3) {
+      let mut temp = String::with_capacity(data.len());
+      for i in (1..data.len())
+      {
+        temp.insert(1, data[i] as char);
+      }
+      self.content = Ieee1609Dot2Content::SignedCert(temp);
+    }
   }
 }
 impl Serialization for SignedData {
